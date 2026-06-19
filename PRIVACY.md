@@ -27,7 +27,7 @@ The Extension does not ask for your Google password. It does not add separate si
 
 ## Local storage
 
-The Extension uses `chrome.storage.local` as a **temporary workflow buffer** during compact or decompact operations. On success, that data is cleared. Stale entries older than 24 hours are removed on extension startup.
+The Extension uses `chrome.storage.local` as a **temporary workflow buffer** during compact or decompact operations. It stores progress metadata (for example, which sources finished uploading), not a second copy of your full notebook text — the NBLC bundle stays in NotebookLM. On success, local data is cleared. Stale entries older than 24 hours are removed on extension startup.
 
 You can also download optional backup files (NBLC markdown or zip) to your computer when you choose.
 
