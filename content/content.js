@@ -1,5 +1,5 @@
 (function () {
-  const { inject, compactModal, decompactModal, consentModal, store } =
+  const { inject, compactModal, decompactModal, consentModal, store, recoveryBanner } =
     window.NBLC;
 
   let observer = null;
@@ -11,9 +11,12 @@
     store
       .migrateFatPendingEntries()
       .then(() => store.sweepStale())
+      .then(() => recoveryBanner?.refresh())
       .catch((error) => {
         console.error("[NBLC] Storage maintenance failed:", error);
       });
+
+    recoveryBanner?.initRecoveryBanner();
 
     window.addEventListener("nblc-compact", async (event) => {
       const accepted = await consentModal.ensureAccepted();
@@ -27,9 +30,11 @@
       const accepted = await consentModal.ensureAccepted();
       if (!accepted) return;
 
-      const sourceId = event.detail?.sourceId;
-      const title = event.detail?.title || "";
-      if (sourceId) decompactModal.open(sourceId, title);
+      decompactModal.open({
+        sourceId: event.detail?.sourceId || null,
+        title: event.detail?.title || "",
+        emptyReason: event.detail?.emptyReason || null,
+      });
     });
   }
 
