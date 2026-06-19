@@ -8,10 +8,10 @@ Quick entry point for AI coding agents. **Full design lives in [CONTEXT.md](./CO
 |-------|--------|-------|
 | **1** | ✅ Done | NBLC merge/parse, Compact UI, `chrome.storage` backup, optional zip download. **No upload or delete.** |
 | **2** | ✅ Done | `addText` (`izAoDd`), `getNotebook` poll (`rLM1Ne`), `delete` (`tGMBJ`), full compact flow |
-| **3** | 🔜 Next | Decompact UI + parse + upload N + delete compacted |
+| **3** | ✅ Done | Decompact UI + parse + upload N + delete compacted |
 | **4** | Planned | Smart URL/YouTube restore; dynamic `bl` extraction |
 
-**Extension version:** `1.1.0` (manifest) · **GitHub:** private repo `ayv4zyan/NotebookLM-Compactor`
+**Extension version:** `1.2.0` (manifest) · **GitHub:** private repo `ayv4zyan/NotebookLM-Compactor`
 
 ## Before you code
 
@@ -26,7 +26,7 @@ Quick entry point for AI coding agents. **Full design lives in [CONTEXT.md](./CO
 - **Message protocol:** `{ type: "source-api", body: { action, ... } }`.
 - **Background:** MV3 service worker with `"type": "module"`.
 - **MutationObserver:** inject-once + `requestAnimationFrame` debounce in `lib/source-panel-inject.js`. Never remove and reinsert buttons on every DOM mutation — caused NotebookLM page freeze.
-- **NBLC format:** pure functions in `lib/nblc-format.js` — no Chrome APIs; keep unit-testable.
+- **NBLC format:** pure functions in `lib/nblc-format.js` — no Chrome APIs; keep unit-testable. Parser must tolerate NotebookLM round-trip (collapsed headers, stripped `---` markers) — see `docs/NBLC-FORMAT.md`.
 - **Storage:** `chrome.storage.local` is a temporary rollback buffer only; cleared on success.
 
 ## Verification
@@ -42,21 +42,19 @@ CI runs both on every push/PR to `main`.
 
 - **`main`** = stable; feature branches (e.g. `phase-2`) merged via PR.
 - No long-lived `develop` branch.
-- Release: tag `v*` (e.g. `v1.1.0`) → GitHub Action builds `notebooklm-compactor.zip` and attaches to Release.
+- Release: tag `v*` (e.g. `v1.2.0`) → GitHub Action builds `notebooklm-compactor.zip` and attaches to Release.
 
-## Phase 3 checklist (next agent task)
+## Phase 4 checklist (next agent task)
 
-1. Add `content/decompact-modal.js`: fetch NBLC source → `parseNblc()` preview → confirm.
-2. Upload each section via `addText` → `waitForSourceReady` per source (or batched progress UI).
-3. Delete compacted source (`delete`) after all uploads succeed; clear storage on success.
-4. Inject **Decompact** button in `lib/source-panel-inject.js` for NBLC-titled sources (`isNblcTitle()`).
-5. Manual test: compact on one notebook, decompact on same or different machine (same Google account).
+1. Smart URL/YouTube restore from NBLC metadata (`izAoDd` URL slots).
+2. Proactive `bl` extraction from page HTML.
+3. Manual test: compact on one notebook, decompact on same or different machine (same Google account).
 
 ## Resolved from planning
 
 - Compact button: `inventory_2` icon in source panel header.
 - `lib/` sharing: copy/adapt from Source-Downloader (not symlink).
-- Decompact button: Phase 3; show only for NBLC-titled sources (`isNblcTitle()`).
+- Decompact button: `unarchive` icon; enabled when exactly one NBLC-titled source is selected (`isNblcTitle()`).
 
 ## Open questions (still valid)
 

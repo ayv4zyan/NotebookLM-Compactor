@@ -2,13 +2,13 @@
 
 Chrome extension that merges many NotebookLM sources into one **NBLC** bundle to save **source count quota**, with full **decompact** restore on any machine.
 
-**Status:** Phase 2 complete (full compact: upload + delete). Phase 3 (decompact) not started.
+**Status:** Phase 3 complete (`v1.2.0`) — full compact and decompact flows.
 
 | Phase | What works |
 |-------|------------|
 | **1** ✅ | Select sources → fetch → merge NBLC → `chrome.storage` backup → optional zip / `.md` download |
 | **2** ✅ | Upload compacted source, poll until ready, delete originals |
-| **3** | Decompact NBLC back into separate sources |
+| **3** ✅ | Decompact NBLC back into separate sources (cross-machine, no storage required) |
 | **4** | Smart URL/YouTube restore from metadata |
 
 ## Install (development)
@@ -16,17 +16,17 @@ Chrome extension that merges many NotebookLM sources into one **NBLC** bundle to
 1. Clone this repo (private GitHub: `ayv4zyan/NotebookLM-Compactor`).
 2. Open `chrome://extensions` → enable **Developer mode**.
 3. **Load unpacked** → select this folder (`NotebookLM-Compactor/`).
-4. Open [notebooklm.google.com](https://notebooklm.google.com), select sources, click **Compact** (`inventory_2` icon in the source panel).
+4. Open [notebooklm.google.com](https://notebooklm.google.com), select sources, click **Compact** (`inventory_2` icon) or **Decompact** (`unarchive` icon) in the source panel.
 
-**Compact** uploads one NBLC source and deletes the originals you selected. Use the optional backup zip if you want a local copy first.
+**Compact** uploads one NBLC source and deletes the originals you selected. **Decompact** restores a `📦 NBLC · …` bundle back into separate sources. Use the optional backup zip if you want a local copy first.
 
 ## Releases
 
 Push a version tag to trigger a GitHub Release with an installable zip:
 
 ```bash
-git tag v1.1.0
-git push origin v1.1.0
+git tag v1.2.0
+git push origin v1.2.0
 ```
 
 Download `notebooklm-compactor.zip` from the Release assets, unzip, and load unpacked in Chrome — or upload to Chrome Web Store.
@@ -44,7 +44,7 @@ CI runs both on every push and pull request to `main`.
 
 | Document | Contents |
 |----------|----------|
-| [AGENTS.md](./AGENTS.md) | Short agent entry: status, conventions, Phase 3 checklist |
+| [AGENTS.md](./AGENTS.md) | Short agent entry: status, conventions, Phase 4 checklist |
 | [CONTEXT.md](./CONTEXT.md) | Full design: goals, decisions, flows, risks |
 | [docs/API.md](./docs/API.md) | batchexecute RPCs: get, delete, upload, poll |
 | [docs/NBLC-FORMAT.md](./docs/NBLC-FORMAT.md) | Self-contained compact file format (v1) |
@@ -64,7 +64,7 @@ CI runs both on every push and pull request to `main`.
 
 **Compact:** select sources → fetch (`hizoJc`) → merge (NBLC) → upload (`izAoDd`) → poll ready (`rLM1Ne`) → delete originals (`tGMBJ`)
 
-**Decompact (Phase 3):** fetch NBLC source → parse → upload each section → delete compacted source
+**Decompact:** fetch NBLC source → parse (with NotebookLM round-trip fallbacks) → upload each section → delete compacted source
 
 **Portable decompact:** all metadata lives inside the uploaded NBLC markdown — no cross-browser storage dependency.
 

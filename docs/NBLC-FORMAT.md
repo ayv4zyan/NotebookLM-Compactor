@@ -45,7 +45,7 @@ version: 1
 created: 2026-06-19T14:30:00Z
 notebook: optional-notebook-slug-or-id
 source_count: 33
-compactor: NotebookLM-Compactor/1.1.0
+compactor: NotebookLM-Compactor/1.2.0
 ---END-BUNDLE---
 
 # NotebookLM Compactor Bundle
@@ -142,9 +142,12 @@ Input `sources[]` from `hizoJc` fetch: `{ id, title, content, type, url? }`.
 
 ```javascript
 function parseNblc(markdown) {
-  // 1. Validate ---NBLC-BUNDLE--- / version
-  // 2. Split on /^---NBLC-SOURCE---$/m
-  // 3. Per block: parse meta lines (key: value) until ---END-META---
+  // 1. Validate ---NBLC-BUNDLE--- / version (tolerate collapsed header lines)
+  // 2. Try source extraction strategies in order:
+  //    a. Split on ---NBLC-SOURCE--- markers (canonical)
+  //    b. Split on ---END-META--- delimiters (markers stripped by NotebookLM)
+  //    c. Split on # [N] Title / [N] Title headings (all --- lines stripped)
+  // 3. Per block: parse meta lines (key: value) until ---END-META--- or heading
   // 4. Remainder = content (strip optional # [N] title line if duplicate of meta title)
   // 5. Verify source_count matches blocks.length
   return { bundle, sources: [{ index, title, type, url, original_id, content }] };
@@ -152,6 +155,19 @@ function parseNblc(markdown) {
 ```
 
 Parser must be **pure function** — testable without Chrome APIs.
+
+### NotebookLM round-trip caveats
+
+When a bundle is uploaded as pasted text and later fetched via `hizoJc`, NotebookLM may alter the markdown:
+
+| Issue | Parser mitigation |
+|-------|-------------------|
+| Bundle header `key: value` lines collapsed onto one line | `normalizeMetaText()` splits inline known keys before parsing |
+| `---NBLC-SOURCE---` lines stripped (treated as horizontal rules) | Fall back to `---END-META---` delimiters or `# [N] Title` headings |
+| `---END-META---` also stripped | Fall back to indexed heading split; meta recovered from preceding `index:` lines when present |
+| Headings returned without `#` prefix | Match `^#{0,3}\s*\[(\d+)\]\s+(.+)$` |
+
+Bundles compacted with any extension version (`1.1.0`, `1.2.0`, etc.) remain decompactable as long as `version: 1` and indexed headings or meta lines survive.
 
 ---
 

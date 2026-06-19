@@ -1,6 +1,6 @@
 # Architecture
 
-**Implementation status:** Phase 2 complete — full compact flow (fetch, merge, upload, poll, delete). Decompact UI is Phase 3. See [AGENTS.md](../AGENTS.md).
+**Implementation status:** Phase 3 complete (`v1.2.0`) — full compact and decompact flows. Phase 4 (smart URL restore, dynamic `bl`) is planned. See [AGENTS.md](../AGENTS.md).
 
 ## System context
 
@@ -43,13 +43,14 @@
 ### `lib/source-panel-inject.js`
 
 - MutationObserver on `document.body` (debounced, inject-once pattern)
-- Inject **Compact** button when sources selected
-- Inject **Decompact** when viewing NBLC-titled source (or always in header with enable/disable)
+- Inject **Compact** button (always enabled when sources selected)
+- Inject **Decompact** button (enabled when exactly one NBLC-titled source is selected)
 - Dispatch custom events: `nblc-compact`, `nblc-decompact`
 
 ### `lib/nblc-format.js`
 
 - Pure functions: `compactSources()`, `parseNblc()`, `validateNblc()`
+- Parser tolerates NotebookLM round-trip: collapsed header lines, stripped `---` markers, fallback via `---END-META---` and `# [N] Title` headings
 - No Chrome dependencies — unit test target
 
 ### `lib/manifest-store.js`
@@ -79,9 +80,11 @@ Pure helpers for extracting source IDs and status from batchexecute responses. U
 
 **States:** `idle | fetching | merging | uploading | deleting | success | error`
 
-### `content/decompact-modal.js` (Phase 3 — not implemented)
+### `content/decompact-modal.js`
 
-UI flow: parse preview (N sources) → confirm → upload loop → delete compacted
+**Flow:** fetch NBLC → parse preview (N sources) → confirm → upload loop (`addText` + `waitForSourceReady` per source) → delete compacted → clear storage
+
+**States:** `fetching | preview | uploading | deleting | success | error`
 
 ## Sequence: Compact (full)
 
