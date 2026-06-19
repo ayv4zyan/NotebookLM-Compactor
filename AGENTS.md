@@ -10,8 +10,9 @@ Quick entry point for AI coding agents. **Full design lives in [CONTEXT.md](./CO
 | **2** | ✅ Done | `addText` (`izAoDd`), `getNotebook` poll (`rLM1Ne`), `delete` (`tGMBJ`), full compact flow |
 | **3** | ✅ Done | Decompact UI + parse + upload N + delete compacted |
 | **4** | ✅ Done | Smart URL/YouTube restore; dynamic `bl` extraction; YouTube URL capture fix (`v1.3.1`) |
+| **5** | ✅ Done | Public-ready docs, consent gates, destructive confirmations, `SECURITY.md` (`v1.3.2`) |
 
-**Extension version:** `1.3.1` (manifest) · **GitHub:** private repo `ayv4zyan/NotebookLM-Compactor`
+**Extension version:** `1.3.2` (manifest) · **GitHub:** `ayv4zyan/NotebookLM-Compactor`
 
 ## Before you code
 
@@ -28,6 +29,8 @@ Quick entry point for AI coding agents. **Full design lives in [CONTEXT.md](./CO
 - **MutationObserver:** inject-once + `requestAnimationFrame` debounce in `lib/source-panel-inject.js`. Never remove and reinsert buttons on every DOM mutation — caused NotebookLM page freeze.
 - **NBLC format:** pure functions in `lib/nblc-format.js` — no Chrome APIs; keep unit-testable. Parser must tolerate NotebookLM round-trip (collapsed headers, stripped `---` markers) — see `docs/NBLC-FORMAT.md`.
 - **Storage:** `chrome.storage.local` is a temporary rollback buffer only; cleared on success.
+- **Consent:** `lib/user-consent.js` + `content/consent-modal.js` — first-run TERMS/PRIVACY; bump `TERMS_VERSION` when TERMS change.
+- **Confirmations:** Compact `CONFIRM` phase and Decompact preview require explicit checkboxes before delete flows.
 
 ## Verification
 
@@ -43,13 +46,14 @@ CI runs all three on every push/PR to `main`.
 
 - **`main`** = stable; feature branches (e.g. `phase-2`) merged via PR.
 - No long-lived `develop` branch.
-- Release: tag `v*` (e.g. `v1.3.1`) → GitHub Action builds `notebooklm-compactor.zip` and attaches to Release.
+- Release: tag `v*` (e.g. `v1.3.2`) → GitHub Action builds `notebooklm-compactor.zip` and attaches to Release.
+- Pre-release: run [docs/MANUAL_TEST_CHECKLIST.md](./docs/MANUAL_TEST_CHECKLIST.md).
 
 ## Phase 4 checklist (complete)
 
 1. ✅ Smart URL/YouTube restore from NBLC metadata (`izAoDd` URL slots).
 2. ✅ Proactive `bl` extraction from page HTML (`cfb2h` via `extractBlVersion()`).
-3. Manual test: compact on one notebook, decompact on same or different machine (same Google account).
+3. Manual test: see [docs/MANUAL_TEST_CHECKLIST.md](./docs/MANUAL_TEST_CHECKLIST.md) (not yet signed off).
 
 ## Resolved from planning
 

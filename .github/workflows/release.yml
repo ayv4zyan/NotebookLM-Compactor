@@ -18,6 +18,10 @@ jobs:
         run: |
           zip -r notebooklm-compactor.zip \
             manifest.json \
+            LICENSE \
+            TERMS.md \
+            PRIVACY.md \
+            SECURITY.md \
             background \
             content \
             lib \

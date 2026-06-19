@@ -2,7 +2,7 @@
 
 **Read this file first.** It captures the full design, API knowledge, and decisions from the planning session.
 
-**Implementation status (2026-06-19):** Phase 1 ✅ `v1.0.0`. Phase 2 ✅ `v1.1.0` (full compact). Phase 3 ✅ `v1.2.0` (decompact). Phase 4 ✅ `v1.3.1` (smart URL restore + dynamic `bl` + correct YouTube metadata extraction on compact). See [AGENTS.md](./AGENTS.md) for a short agent entry point.
+**Implementation status (2026-06-19):** Phase 1 ✅ `v1.0.0`. Phase 2 ✅ `v1.1.0` (full compact). Phase 3 ✅ `v1.2.0` (decompact). Phase 4 ✅ `v1.3.1` (smart URL restore + dynamic `bl` + correct YouTube metadata extraction on compact). Phase 5 ✅ `v1.3.2` (LICENSE/TERMS/PRIVACY/SECURITY, consent gate, destructive confirmations, store listing docs). See [AGENTS.md](./AGENTS.md) for a short agent entry point.
 
 ## Project goal
 
@@ -195,12 +195,15 @@ NotebookLM-Compactor/
   AGENTS.md                  ← short agent entry (status, conventions)
   CONTEXT.md                 ← this file (full design)
   README.md
-  manifest.json              ✅ v1.3.1
+  manifest.json              ✅ v1.3.2
+  LICENSE TERMS.md PRIVACY.md SECURITY.md
   .github/workflows/         ✅ ci.yml (tests), release.yml (zip on v* tag)
   docs/
     API.md
     NBLC-FORMAT.md
     ARCHITECTURE.md
+    CHROME_WEB_STORE.md
+    MANUAL_TEST_CHECKLIST.md
   background/
     index.js                 ✅ message router + stale storage sweep
     source-api.js            ✅ getContent, addText, addUrl, addYoutube, getNotebook, delete, waitForSourceReady
@@ -211,10 +214,12 @@ NotebookLM-Compactor/
     source-panel-inject.js   ✅ Compact (inventory_2) + Decompact (unarchive) buttons
     nblc-format.js           ✅ compactSources, parseNblc, validateNblc, resolveDecompactUpload, enrichSourceForDecompact
     manifest-store.js        ✅ pending-compact / pending-decompact keys
+    user-consent.js          ✅ TERMS version + acceptance storage
   content/
     content.js
-    compact-modal.js         ✅ full compact flow (upload → poll → delete)
-    decompact-modal.js         ✅ full decompact flow (fetch → parse → upload → delete)
+    consent-modal.js         ✅ first-run TERMS/PRIVACY gate
+    compact-modal.js         ✅ full compact flow (upload → poll → delete) + confirm step
+    decompact-modal.js         ✅ full decompact flow (fetch → parse → upload → delete) + confirm checkboxes
     modal.css
   test/
     nblc-format.test.js        ✅ roundtrip + NotebookLM round-trip parse fallbacks
@@ -225,7 +230,7 @@ NotebookLM-Compactor/
   icons/
 ```
 
-**Git repo:** `ayv4zyan/NotebookLM-Compactor` (private). Sibling `NotebookLM-Source-Downloader/` lives outside this repo.
+**Git repo:** `ayv4zyan/NotebookLM-Compactor`. Sibling `NotebookLM-Source-Downloader/` lives outside this repo.
 
 ---
 
@@ -282,11 +287,11 @@ NotebookLM Compactor/              # parent workspace (not a git repo)
   NotebookLM-Ultra-Exporter.crx    # original reverse-engineering source
   extracted/                       # unpacked CRX (reference only)
   NotebookLM-Source-Downloader/    # ✅ working download extension (sibling)
-  NotebookLM-Compactor/            # ✅ this extension — git repo, Phase 4 done (`v1.3.1`)
+  NotebookLM-Compactor/            # ✅ this extension — git repo, `v1.3.2`
 ```
 
 ---
 
 ## Next steps for agent
 
-Phase 4 is complete (`v1.3.1`). Remaining open items: manual end-to-end test on a live notebook; stress-test 30+ long transcripts; confirm NotebookLM source count limit.
+Phase 5 is complete (`v1.3.2`). Remaining open items: sign off [docs/MANUAL_TEST_CHECKLIST.md](./docs/MANUAL_TEST_CHECKLIST.md); stress-test 30+ long transcripts; confirm NotebookLM source count limit; Chrome Web Store submit ([docs/CHROME_WEB_STORE.md](./docs/CHROME_WEB_STORE.md)).

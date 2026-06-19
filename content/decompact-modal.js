@@ -18,6 +18,8 @@
   let progress = { current: 0, total: 0, status: "" };
   let uploadedSourceIds = [];
   let errorMessage = "";
+  let ackDeleteCompacted = false;
+  let ackDataLossRisk = false;
 
   function sendSourceApi(body) {
     return chrome.runtime.sendMessage({ type: "source-api", body });
@@ -222,6 +224,10 @@
     }
   }
 
+  function canProceedWithDecompact() {
+    return ackDeleteCompacted && ackDataLossRisk;
+  }
+
   function renderPreviewBody() {
     const titleWarning =
       !format.isNblcTitle(compactedTitle)
@@ -281,7 +287,29 @@
         The compacted NBLC source will be deleted after all uploads succeed.
       </p>
 
-      <button class="nblc-primary-btn" data-action="decompact">
+      <label class="nblc-option-row nblc-consent-check">
+        <input
+          type="checkbox"
+          data-action="toggle-ack-delete-compacted"
+          ${ackDeleteCompacted ? "checked" : ""}
+        />
+        <span>I understand the compacted NBLC source will be permanently deleted after restore succeeds.</span>
+      </label>
+
+      <label class="nblc-option-row nblc-consent-check">
+        <input
+          type="checkbox"
+          data-action="toggle-ack-risk"
+          ${ackDataLossRisk ? "checked" : ""}
+        />
+        <span>I accept the risk of irreversible changes if this operation fails partway through.</span>
+      </label>
+
+      <button
+        class="nblc-primary-btn"
+        data-action="decompact"
+        ${canProceedWithDecompact() ? "" : "disabled"}
+      >
         Decompact ${parsed.sources.length} Sources
       </button>
     `;
@@ -398,7 +426,16 @@
       case "close":
         if (!isBusy()) close();
         break;
+      case "toggle-ack-delete-compacted":
+        ackDeleteCompacted = target.checked;
+        render();
+        break;
+      case "toggle-ack-risk":
+        ackDataLossRisk = target.checked;
+        render();
+        break;
       case "decompact":
+        if (!canProceedWithDecompact()) break;
         runDecompact();
         break;
       case "retry":
@@ -423,6 +460,8 @@
     phase = PHASE.FETCHING;
     progress = { current: 0, total: 0, status: "" };
     errorMessage = "";
+    ackDeleteCompacted = false;
+    ackDataLossRisk = false;
 
     if (!overlay) {
       overlay = document.createElement("div");

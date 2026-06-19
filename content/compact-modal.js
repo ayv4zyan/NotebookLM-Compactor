@@ -3,6 +3,7 @@
 
   const PHASE = {
     IDLE: "idle",
+    CONFIRM: "confirm",
     FETCHING: "fetching",
     MERGING: "merging",
     UPLOADING: "uploading",
@@ -16,6 +17,8 @@
   let allSources = [];
   let filterText = "";
   let downloadBackupZip = false;
+  let ackPermanentDelete = false;
+  let ackDataLossRisk = false;
   let phase = PHASE.IDLE;
   let progress = { current: 0, total: 0, status: "" };
   let result = null;
@@ -329,6 +332,62 @@
     );
   }
 
+  function canProceedWithCompact() {
+    return ackPermanentDelete && ackDataLossRisk;
+  }
+
+  function renderConfirmBody() {
+    const count = selectedIds.size;
+    return `
+      <div class="nblc-confirm-panel">
+        <p class="nblc-confirm-title">Confirm compact operation</p>
+        <p class="nblc-confirm-detail">
+          This will upload <strong>1</strong> NBLC source and
+          <strong>permanently delete ${count}</strong> selected source${count === 1 ? "" : "s"}.
+          There is no undo.
+        </p>
+      </div>
+
+      <label class="nblc-option-row nblc-consent-check">
+        <input
+          type="checkbox"
+          data-action="toggle-ack-delete"
+          ${ackPermanentDelete ? "checked" : ""}
+        />
+        <span>I understand the selected originals will be permanently deleted after upload succeeds.</span>
+      </label>
+
+      <label class="nblc-option-row nblc-consent-check">
+        <input
+          type="checkbox"
+          data-action="toggle-ack-risk"
+          ${ackDataLossRisk ? "checked" : ""}
+        />
+        <span>I have backed up important data or accept the risk of irreversible data loss.</span>
+      </label>
+
+      <label class="nblc-option-row">
+        <input
+          type="checkbox"
+          ${downloadBackupZip ? "checked" : ""}
+          data-action="toggle-backup-zip"
+        />
+        <span>Also download backup zip on success</span>
+      </label>
+
+      <div class="nblc-action-row">
+        <button class="nblc-secondary-btn" data-action="back">Back</button>
+        <button
+          class="nblc-primary-btn"
+          data-action="proceed-compact"
+          ${canProceedWithCompact() ? "" : "disabled"}
+        >
+          Proceed with Compact (${count})
+        </button>
+      </div>
+    `;
+  }
+
   function renderIdleBody(filtered, allSelected) {
     return `
       <input
@@ -446,6 +505,8 @@
       body = renderSuccessBody();
     } else if (phase === PHASE.ERROR) {
       body = renderErrorBody();
+    } else if (phase === PHASE.CONFIRM) {
+      body = renderConfirmBody();
     } else {
       body = renderIdleBody(filtered, allSelected);
     }
@@ -504,7 +565,29 @@
       case "toggle-backup-zip":
         downloadBackupZip = target.checked;
         break;
+      case "toggle-ack-delete":
+        ackPermanentDelete = target.checked;
+        render();
+        break;
+      case "toggle-ack-risk":
+        ackDataLossRisk = target.checked;
+        render();
+        break;
+      case "back":
+        if (!isBusy()) {
+          phase = PHASE.IDLE;
+          render();
+        }
+        break;
       case "compact":
+        if (selectedIds.size === 0 || isBusy()) break;
+        phase = PHASE.CONFIRM;
+        ackPermanentDelete = false;
+        ackDataLossRisk = false;
+        render();
+        break;
+      case "proceed-compact":
+        if (!canProceedWithCompact() || isBusy()) break;
         runCompact();
         break;
       case "download-nblc":
@@ -538,6 +621,8 @@
     allSources = api.extractSourcesFromDOM();
     filterText = "";
     downloadBackupZip = false;
+    ackPermanentDelete = false;
+    ackDataLossRisk = false;
     phase = PHASE.IDLE;
     progress = { current: 0, total: 0, status: "" };
     result = null;

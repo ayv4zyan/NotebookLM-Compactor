@@ -138,7 +138,17 @@ function parseBatchExecuteResponse(text) {
   return null;
 }
 
+const MIN_REQUEST_INTERVAL_MS = 400;
+let lastBatchExecuteAt = 0;
+
 async function batchExecute({ notebookId, rpcId, body, blVersion }) {
+  const now = Date.now();
+  const waitMs = lastBatchExecuteAt + MIN_REQUEST_INTERVAL_MS - now;
+  if (waitMs > 0) {
+    await sleep(waitMs);
+  }
+  lastBatchExecuteAt = Date.now();
+
   const url = buildBatchExecuteUrl(notebookId, rpcId, blVersion);
   const response = await fetch(url, {
     method: "POST",
