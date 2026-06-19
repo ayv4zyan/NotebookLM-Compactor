@@ -26,10 +26,12 @@
         "lib/manifest-store.js",
         "lib/user-consent.js",
         "lib/notebooklm-api.js",
+        "lib/modal-a11y.js",
         "lib/source-panel-inject.js",
         "content/consent-modal.js",
         "content/compact-modal.js",
         "content/decompact-modal.js",
+        "content/recovery-banner.js",
         "content/content.js"
       ],
       "css": ["content/modal.css"],

@@ -1,7 +1,8 @@
 (function () {
-  const { consent } = window.NBLC;
+  const { consent, modalA11y } = window.NBLC;
 
   let overlay = null;
+  let a11y = null;
   let resolvePending = null;
   let ackTerms = false;
   let ackUnofficial = false;
@@ -70,9 +71,12 @@
         </div>
       </div>
     `;
+
+    a11y?.afterRender();
   }
 
   function finish(accepted) {
+    a11y?.onClose();
     if (overlay) overlay.style.display = "none";
     const resolve = resolvePending;
     resolvePending = null;
@@ -88,10 +92,16 @@
       overlay.id = "nblc-consent-modal-root";
       overlay.addEventListener("click", handleClick);
       document.body.appendChild(overlay);
+
+      a11y = modalA11y.attachModalA11y(overlay, () => ({
+        isBusy: () => false,
+        onClose: () => finish(false),
+      }));
     }
 
     render();
     overlay.style.display = "block";
+    a11y.onOpen();
   }
 
   async function ensureAccepted() {
