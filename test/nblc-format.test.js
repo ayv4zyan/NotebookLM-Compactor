@@ -5,6 +5,11 @@ const {
   validateNblc,
   buildCompactedTitle,
   isNblcTitle,
+  isYoutubeUrl,
+  extractUrlFromContent,
+  enrichSourceForDecompact,
+  resolveDecompactUpload,
+  describeDecompactMethod,
 } = require("../lib/nblc-format.js");
 
 const SAMPLE_SOURCES = [
@@ -197,6 +202,125 @@ Body text here.
   assert.strictEqual(sources[0].content, "Body text here.");
 }
 
+function testResolveDecompactUpload() {
+  assert.deepStrictEqual(
+    resolveDecompactUpload({
+      type: "youtube",
+      url: "https://www.youtube.com/watch?v=abc",
+      title: "YT",
+      content: "transcript",
+    }),
+    { action: "addYoutube", url: "https://www.youtube.com/watch?v=abc" }
+  );
+
+  assert.deepStrictEqual(
+    resolveDecompactUpload({
+      type: "web",
+      url: "https://example.com",
+      title: "Web",
+      content: "page text",
+    }),
+    { action: "addUrl", url: "https://example.com" }
+  );
+
+  assert.deepStrictEqual(
+    resolveDecompactUpload({
+      type: "text",
+      url: null,
+      title: "Plain",
+      content: "body",
+    }),
+    { action: "addText", title: "Plain", content: "body" }
+  );
+
+  assert.deepStrictEqual(
+    resolveDecompactUpload({
+      type: "youtube",
+      url: null,
+      title: "YT no url",
+      content: "fallback",
+    }),
+    { action: "addText", title: "YT no url", content: "fallback" }
+  );
+
+  assert.deepStrictEqual(
+    resolveDecompactUpload({
+      type: "unknown",
+      url: null,
+      title: "YT from content",
+      content:
+        "Source: [watch](https://www.youtube.com/watch?v=abc123)\n\nTranscript here.",
+    }),
+    { action: "addYoutube", url: "https://www.youtube.com/watch?v=abc123" }
+  );
+
+  assert.deepStrictEqual(
+    resolveDecompactUpload({
+      type: "unknown",
+      url: null,
+      title: "YT bare url",
+      content: "See https://youtu.be/xyz789 for context.\n\nMore text.",
+    }),
+    { action: "addYoutube", url: "https://youtu.be/xyz789" }
+  );
+
+  assert.strictEqual(
+    describeDecompactMethod({
+      type: "youtube",
+      url: "https://youtu.be/x",
+      title: "T",
+      content: "",
+    }),
+    "YouTube URL"
+  );
+  assert.strictEqual(
+    describeDecompactMethod({
+      type: "pdf",
+      url: null,
+      title: "T",
+      content: "x",
+    }),
+    "pasted text"
+  );
+}
+
+function testIsYoutubeUrl() {
+  assert.strictEqual(isYoutubeUrl("https://www.youtube.com/watch?v=1"), true);
+  assert.strictEqual(isYoutubeUrl("https://youtu.be/abc"), true);
+  assert.strictEqual(isYoutubeUrl("https://example.com"), false);
+}
+
+function testExtractUrlFromContent() {
+  assert.strictEqual(
+    extractUrlFromContent(
+      "Source: [video](https://www.youtube.com/watch?v=abc)\n\nBody"
+    ),
+    "https://www.youtube.com/watch?v=abc"
+  );
+  assert.strictEqual(
+    extractUrlFromContent("url: https://www.youtube.com/watch?v=meta"),
+    "https://www.youtube.com/watch?v=meta"
+  );
+  assert.strictEqual(extractUrlFromContent("No url here"), null);
+}
+
+function testEnrichSourceForDecompact() {
+  const enriched = enrichSourceForDecompact({
+    index: 1,
+    title: "Video",
+    type: "unknown",
+    url: null,
+    content: "Source: [x](https://youtu.be/abc)\n\ntranscript",
+  });
+
+  assert.strictEqual(enriched.type, "youtube");
+  assert.strictEqual(enriched.url, "https://youtu.be/abc");
+  assert.strictEqual(
+    resolveDecompactUpload(enriched).action,
+    "addYoutube"
+  );
+}
+
 testRoundtrip();
 testCompactedTitle();
 testSourceCountMismatch();
@@ -205,5 +329,9 @@ testCollapsedBundleHeader();
 testNotebookLmStrippedSourceMarkers();
 testNotebookLmHeadingsOnly();
 testPlainTextIndexedHeadings();
+testResolveDecompactUpload();
+testIsYoutubeUrl();
+testExtractUrlFromContent();
+testEnrichSourceForDecompact();
 
 console.log("nblc-format tests passed");

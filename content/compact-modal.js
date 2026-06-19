@@ -98,6 +98,7 @@
 
     const notebookId = api.extractNotebookId();
     const atToken = api.extractATToken();
+    const blVersion = api.extractBlVersion();
 
     if (!notebookId || !atToken) {
       phase = PHASE.ERROR;
@@ -131,6 +132,7 @@
           sourceId,
           notebookId,
           atToken,
+          blVersion,
         });
 
         if (!response?.success) {
@@ -141,12 +143,15 @@
 
         const url =
           response.url || api.extractUrlFromContent(response.content) || null;
+        const type =
+          domSource?.type || response.sourceType || (url ? "web" : "unknown");
 
         fetched.push({
           id: sourceId,
           title: response.title || domSource?.title || sourceId,
           content: response.content || "",
-          type: domSource?.type || "unknown",
+          type:
+            type === "unknown" && format.isYoutubeUrl(url) ? "youtube" : type,
           url,
         });
       }
@@ -196,6 +201,7 @@
         action: "addText",
         notebookId,
         atToken,
+        blVersion,
         title: compactedTitle,
         content: compactedContent,
       });
@@ -225,6 +231,7 @@
         action: "waitForSourceReady",
         notebookId,
         atToken,
+        blVersion,
         sourceId: compactedSourceId,
       });
 
@@ -254,6 +261,7 @@
         action: "delete",
         notebookId,
         atToken,
+        blVersion,
         sourceIds: ids,
       });
 

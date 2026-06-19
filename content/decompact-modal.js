@@ -49,6 +49,7 @@
       sourceId,
       notebookId,
       atToken,
+      blVersion: api.extractBlVersion(),
     });
 
     if (!response?.success) {
@@ -79,6 +80,7 @@
 
     const notebookId = api.extractNotebookId();
     const atToken = api.extractATToken();
+    const blVersion = api.extractBlVersion();
 
     if (!notebookId || !atToken) {
       phase = PHASE.ERROR;
@@ -104,22 +106,33 @@
       });
 
       for (let i = startIndex; i < sources.length; i++) {
-        const src = sources[i];
+        const src = format.enrichSourceForDecompact(sources[i]);
+        const uploadPlan = format.resolveDecompactUpload(src);
+        const methodLabel = format.describeDecompactMethod(src);
 
         progress = {
           current: i + 1,
           total: sources.length,
-          status: `Uploading [${src.index}]: ${src.title}`,
+          status: `Uploading [${src.index}]: ${src.title} (${methodLabel})`,
         };
         render();
 
-        const uploadResponse = await sendSourceApi({
-          action: "addText",
+        const uploadBody = {
           notebookId,
           atToken,
-          title: src.title,
-          content: src.content,
-        });
+          blVersion,
+        };
+
+        if (uploadPlan.action === "addYoutube" || uploadPlan.action === "addUrl") {
+          uploadBody.action = uploadPlan.action;
+          uploadBody.url = uploadPlan.url;
+        } else {
+          uploadBody.action = "addText";
+          uploadBody.title = uploadPlan.title;
+          uploadBody.content = uploadPlan.content;
+        }
+
+        const uploadResponse = await sendSourceApi(uploadBody);
 
         if (!uploadResponse?.success) {
           throw new Error(
@@ -142,6 +155,7 @@
           action: "waitForSourceReady",
           notebookId,
           atToken,
+          blVersion,
           sourceId: newSourceId,
         });
 
@@ -179,6 +193,7 @@
         action: "delete",
         notebookId,
         atToken,
+        blVersion,
         sourceIds: [compactedSourceId],
       });
 
@@ -224,14 +239,21 @@
         : "";
 
     const sourceList = parsed.sources
-      .map(
-        (src) => `
+      .map((src) => {
+        const plan = format.resolveDecompactUpload(src);
+        const urlHint =
+          plan.action !== "addText" && plan.url
+            ? ` · <code>${escapeHtml(plan.url)}</code>`
+            : plan.action === "addText" && src.type === "youtube"
+              ? ' · <span class="nblc-warn-inline">no URL found — will paste transcript</span>'
+              : "";
+        return `
         <div class="nblc-source-item nblc-preview-item">
           <span class="nblc-preview-index">[${src.index}]</span>
-          <span>${escapeHtml(src.title)} <em>(${escapeHtml(src.type)})</em></span>
+          <span>${escapeHtml(src.title)} <em>(${escapeHtml(src.type)} → ${escapeHtml(format.describeDecompactMethod(src))})</em>${urlHint}</span>
         </div>
-      `
-      )
+      `;
+      })
       .join("");
 
     return `
@@ -255,7 +277,7 @@
       </div>
 
       <p class="nblc-preview-note">
-        Each section will be uploaded as a separate pasted-text source.
+        YouTube and web sources with stored URLs are re-added as live links; other types use pasted text.
         The compacted NBLC source will be deleted after all uploads succeed.
       </p>
 
