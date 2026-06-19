@@ -43,7 +43,7 @@ The Extension does **not**:
 
 | Permission | Purpose |
 |------------|---------|
-| `storage` | Temporary local rollback state during operations |
+| `storage` / `unlimitedStorage` | Temporary rollback progress during large compact/decompact operations |
 | `host_permissions: https://notebooklm.google.com/*` | Communicate with NotebookLM only when you run Compact or Decompact |
 
 ## Data retention and deletion

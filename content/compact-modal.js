@@ -187,7 +187,7 @@
 
       await store.savePendingCompact(notebookId, {
         phase: "fetched",
-        sources: fetched,
+        sourceIds: ids,
         compactedContent,
         compactedSourceId: null,
       });
@@ -218,7 +218,7 @@
 
       await store.savePendingCompact(notebookId, {
         phase: "uploaded",
-        sources: fetched,
+        sourceIds: ids,
         compactedContent,
         compactedSourceId,
       });
@@ -255,7 +255,7 @@
 
       await store.savePendingCompact(notebookId, {
         phase: "deleting",
-        sources: fetched,
+        sourceIds: ids,
         compactedContent,
         compactedSourceId,
       });

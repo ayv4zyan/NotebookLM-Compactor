@@ -8,9 +8,12 @@
     if (observer) observer.disconnect();
     observer = inject.initSourcePanelObserver();
 
-    store.sweepStale().catch((error) => {
-      console.error("[NBLC] Stale storage sweep failed:", error);
-    });
+    store
+      .migrateFatPendingEntries()
+      .then(() => store.sweepStale())
+      .catch((error) => {
+        console.error("[NBLC] Storage maintenance failed:", error);
+      });
 
     window.addEventListener("nblc-compact", async (event) => {
       const accepted = await consentModal.ensureAccepted();

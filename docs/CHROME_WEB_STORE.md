@@ -51,9 +51,9 @@ Provide user-initiated tools to merge and restore NotebookLM notebook sources wi
 
 ## Permission justifications
 
-### `storage`
+### `storage` and `unlimitedStorage`
 
-Stores temporary rollback state in `chrome.storage.local` while a Compact or Decompact operation is in progress. Cleared on success; stale entries removed after 24 hours. Also stores Terms acceptance version after first-run consent.
+Stores small progress records in `chrome.storage.local` while a Compact or Decompact operation is in progress (uploaded source IDs, not full notebook text). `unlimitedStorage` prevents Chrome's default ~10MB cap from interrupting large notebooks. Cleared on success; stale entries removed after 24 hours. Also stores Terms acceptance version after first-run consent.
 
 ### Host permission: `https://notebooklm.google.com/*`
 

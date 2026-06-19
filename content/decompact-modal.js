@@ -102,9 +102,9 @@
     try {
       await store.savePendingDecompact(notebookId, {
         phase: "uploading",
-        sections: sources,
         compactedSourceId,
         uploadedSourceIds,
+        sectionCount: sources.length,
       });
 
       for (let i = startIndex; i < sources.length; i++) {
@@ -170,9 +170,9 @@
 
         await store.savePendingDecompact(notebookId, {
           phase: "uploading",
-          sections: sources,
           compactedSourceId,
           uploadedSourceIds,
+          sectionCount: sources.length,
         });
       }
 
@@ -186,9 +186,9 @@
 
       await store.savePendingDecompact(notebookId, {
         phase: "deleting",
-        sections: sources,
         compactedSourceId,
         uploadedSourceIds,
+        sectionCount: sources.length,
       });
 
       const deleteResponse = await sendSourceApi({
@@ -361,7 +361,7 @@
         <p class="nblc-error-title">Decompact failed</p>
         <p class="nblc-error-detail">${escapeHtml(errorMessage)}</p>
         ${partialNote}
-        <p class="nblc-error-note">Progress is saved in extension storage for retry.</p>
+        <p class="nblc-error-note">If upload had started, click Try Again to resume from the next source (bundle is re-read from NotebookLM).</p>
       </div>
       <button class="nblc-primary-btn" data-action="retry">Try Again</button>
     `;
@@ -486,32 +486,27 @@
 
     try {
       const pending = await store.getPendingDecompact(notebookId);
-      if (
+      const canResume =
         pending?.compactedSourceId === sourceId &&
-        pending?.sections?.length > 0 &&
-        pending.phase !== "done"
-      ) {
-        parsed = {
-          bundle: { created: pending.createdAt, source_count: pending.sections.length },
-          sources: pending.sections,
-          warnings: [],
-          contentSize: 0,
-        };
+        pending.phase !== "done" &&
+        (pending.uploadedSourceIds?.length > 0 ||
+          pending.phase === "uploading" ||
+          pending.phase === "deleting");
+
+      if (canResume) {
         uploadedSourceIds = pending.uploadedSourceIds || [];
+        await fetchAndParse(notebookId, atToken, sourceId);
         phase = PHASE.PREVIEW;
-        progress = { current: uploadedSourceIds.length, total: pending.sections.length, status: "" };
+        progress = {
+          current: uploadedSourceIds.length,
+          total: parsed.sources.length,
+          status: "",
+        };
         render();
         return;
       }
 
       await fetchAndParse(notebookId, atToken, sourceId);
-
-      await store.savePendingDecompact(notebookId, {
-        phase: "parsed",
-        sections: parsed.sources,
-        compactedSourceId,
-        uploadedSourceIds: [],
-      });
     } catch (error) {
       console.error("[DecompactModal] Fetch/parse failed:", error);
       phase = PHASE.ERROR;
