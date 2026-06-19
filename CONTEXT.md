@@ -2,7 +2,7 @@
 
 **Read this file first.** It captures the full design, API knowledge, and decisions from the planning session.
 
-**Implementation status (2026-06-19):** Phase 1 ✅ `v1.0.0`. Phase 2 ✅ `v1.1.0` (full compact). Phase 3 ✅ `v1.2.0` (decompact). Phase 4 planned. See [AGENTS.md](./AGENTS.md) for a short agent entry point.
+**Implementation status (2026-06-19):** Phase 1 ✅ `v1.0.0`. Phase 2 ✅ `v1.1.0` (full compact). Phase 3 ✅ `v1.2.0` (decompact). Phase 4 ✅ `v1.3.1` (smart URL restore + dynamic `bl` + correct YouTube metadata extraction on compact). See [AGENTS.md](./AGENTS.md) for a short agent entry point.
 
 ## Project goal
 
@@ -74,10 +74,11 @@ Mitigation in NBLC content:
 
 We cannot change NotebookLM’s citation UI. Structure content so model and human can identify origins.
 
-### 5. Decompact restores pasted-text sources
+### 5. Decompact restore strategy
 
-v1: all restored sources via `izAoDd` pasted text.  
-Phase 4: re-add YouTube/URL from stored `url` metadata when available.
+- **YouTube / web** with recoverable URL → `addYoutube` / `addUrl` (live link sources)
+- **Everything else** (pdf, text, missing URL) → `addText` (pasted transcript/content)
+- URL from `url:` meta or recovered from section content when NotebookLM strips meta on round-trip
 
 ### 6. Separate extension
 
@@ -125,7 +126,7 @@ Full details: `docs/API.md`
 | Add pasted text | `izAoDd` | ✅ Phase 2 |
 | Add file (PDF etc.) | `o4cbdc` + resumable upload | 📋 Not needed v1 |
 | List notebook / poll status | `rLM1Ne` | ✅ Phase 2 (`waitForSourceReady`) |
-| Re-add URL / YouTube | `izAoDd` (different payload slots) | 📋 Phase 4 |
+| Re-add URL / YouTube | `izAoDd` (different payload slots) | ✅ Done |
 
 Auth: `window.WIZ_global_data.SNlM0e` or regex in page scripts. Session cookies via `credentials: 'include'`.
 
@@ -175,15 +176,15 @@ Cleanup: remove key on success; keep on failure; sweep stale >24h.
 | **1** | NBLC merge/split + Compact UI + local backup in storage + download zip option. **No delete, no upload.** | ✅ Done |
 | **2** | `addText` + `waitForSourceReady` + full compact with delete | ✅ Done |
 | **3** | Decompact UI + parse + upload N + delete compacted | ✅ Done (`v1.2.0`) |
-| **4** | Smart restore: URL/YouTube from metadata; extract `bl` from page HTML | Planned |
+| **4** | Smart restore: URL/YouTube from metadata; extract `bl` from page HTML | ✅ Done (`v1.3.1`) |
 
 ### Compact behavior (current)
 
-Select sources → fetch → merge NBLC → `chrome.storage` backup → upload as pasted text → poll until READY → delete originals → clear storage. Optional backup zip on success. On upload failure: storage retained, originals unchanged. On delete failure after upload: storage retained, both compacted and originals remain.
+Select sources → fetch (`hizoJc`, captures `url` + `sourceType` from metadata) → merge NBLC → `chrome.storage` backup → upload as pasted text → poll until READY → delete originals → clear storage. Optional backup zip on success. On upload failure: storage retained, originals unchanged. On delete failure after upload: storage retained, both compacted and originals remain.
 
 ### Decompact behavior (current)
 
-Select one NBLC-titled source → fetch bundle (`hizoJc`) → parse with round-trip fallbacks → preview → upload each section (`izAoDd` + `waitForSourceReady`) → delete compacted source → clear storage. Works cross-machine without extension storage. On partial upload failure: storage retains progress; retry resumes from next source.
+Select one NBLC-titled source → fetch bundle (`hizoJc`) → parse with round-trip fallbacks → preview (shows restore method per source) → upload each section via `addYoutube`, `addUrl`, or `addText` (`izAoDd` + `waitForSourceReady`) → delete compacted source → clear storage. YouTube/web sources restore as live links when `url` is in meta or recoverable from section content. Works cross-machine without extension storage. On partial upload failure: storage retains progress; retry resumes from next source. Bundles compacted before `v1.3.1` may lack stored URLs — re-compact to enable live link restore.
 
 ---
 
@@ -194,7 +195,7 @@ NotebookLM-Compactor/
   AGENTS.md                  ← short agent entry (status, conventions)
   CONTEXT.md                 ← this file (full design)
   README.md
-  manifest.json              ✅ v1.2.0
+  manifest.json              ✅ v1.3.1
   .github/workflows/         ✅ ci.yml (tests), release.yml (zip on v* tag)
   docs/
     API.md
@@ -202,13 +203,13 @@ NotebookLM-Compactor/
     ARCHITECTURE.md
   background/
     index.js                 ✅ message router + stale storage sweep
-    source-api.js            ✅ getContent, addText, getNotebook, delete, waitForSourceReady
+    source-api.js            ✅ getContent, addText, addUrl, addYoutube, getNotebook, delete, waitForSourceReady
     rpc-parse.js             ✅ source ID / status parsing (unit tested)
     storage-sweep.js
   lib/
-    notebooklm-api.js        ✅ DOM scrape, AT token, isNblcSource
+    notebooklm-api.js        ✅ DOM scrape, AT token, extractBlVersion, isNblcSource
     source-panel-inject.js   ✅ Compact (inventory_2) + Decompact (unarchive) buttons
-    nblc-format.js           ✅ compactSources, parseNblc, validateNblc
+    nblc-format.js           ✅ compactSources, parseNblc, validateNblc, resolveDecompactUpload, enrichSourceForDecompact
     manifest-store.js        ✅ pending-compact / pending-decompact keys
   content/
     content.js
@@ -218,6 +219,7 @@ NotebookLM-Compactor/
   test/
     nblc-format.test.js        ✅ roundtrip + NotebookLM round-trip parse fallbacks
     rpc-parse.test.mjs         ✅ API response parsing
+    source-api.test.mjs        ✅ izAoDd payload slots + metadata URL extraction
   vendor/
     jszip.min.js               ✅ optional backup zip
   icons/
@@ -280,15 +282,11 @@ NotebookLM Compactor/              # parent workspace (not a git repo)
   NotebookLM-Ultra-Exporter.crx    # original reverse-engineering source
   extracted/                       # unpacked CRX (reference only)
   NotebookLM-Source-Downloader/    # ✅ working download extension (sibling)
-  NotebookLM-Compactor/            # ✅ this extension — git repo, Phase 3 done (`v1.2.0`)
+  NotebookLM-Compactor/            # ✅ this extension — git repo, Phase 4 done (`v1.3.1`)
 ```
 
 ---
 
-## Next steps for agent (Phase 4)
+## Next steps for agent
 
-1. Read [AGENTS.md](./AGENTS.md) Phase 4 checklist and `docs/API.md` (URL upload payload slots).
-2. Add `addUrl` / `addYoutube` actions in `background/source-api.js` using `izAoDd` slot positions.
-3. On decompact: use URL restore when `meta.type` + `meta.url` are present; fall back to pasted text otherwise.
-4. Extract `bl` build label from page HTML instead of hardcoded `BL_VERSION`.
-5. Tag release (e.g. `v1.3.0`) when Phase 4 is stable.
+Phase 4 is complete (`v1.3.1`). Remaining open items: manual end-to-end test on a live notebook; stress-test 30+ long transcripts; confirm NotebookLM source count limit.

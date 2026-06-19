@@ -2,14 +2,14 @@
 
 Chrome extension that merges many NotebookLM sources into one **NBLC** bundle to save **source count quota**, with full **decompact** restore on any machine.
 
-**Status:** Phase 3 complete (`v1.2.0`) — full compact and decompact flows.
+**Status:** Phase 4 complete (`v1.3.1`) — smart URL/YouTube restore on decompact; dynamic `bl` extraction.
 
 | Phase | What works |
 |-------|------------|
 | **1** ✅ | Select sources → fetch → merge NBLC → `chrome.storage` backup → optional zip / `.md` download |
 | **2** ✅ | Upload compacted source, poll until ready, delete originals |
 | **3** ✅ | Decompact NBLC back into separate sources (cross-machine, no storage required) |
-| **4** | Smart URL/YouTube restore from metadata |
+| **4** ✅ | Smart URL/YouTube restore (`addUrl` / `addYoutube`); `bl` from page HTML |
 
 ## Install (development)
 
@@ -25,8 +25,8 @@ Chrome extension that merges many NotebookLM sources into one **NBLC** bundle to
 Push a version tag to trigger a GitHub Release with an installable zip:
 
 ```bash
-git tag v1.2.0
-git push origin v1.2.0
+git tag v1.3.1
+git push origin v1.3.1
 ```
 
 Download `notebooklm-compactor.zip` from the Release assets, unzip, and load unpacked in Chrome — or upload to Chrome Web Store.
@@ -36,15 +36,16 @@ Download `notebooklm-compactor.zip` from the Release assets, unzip, and load unp
 ```bash
 node test/nblc-format.test.js
 node test/rpc-parse.test.mjs
+node test/source-api.test.mjs
 ```
 
-CI runs both on every push and pull request to `main`.
+CI runs all three on every push and pull request to `main`.
 
 ## For AI agents / developers
 
 | Document | Contents |
 |----------|----------|
-| [AGENTS.md](./AGENTS.md) | Short agent entry: status, conventions, Phase 4 checklist |
+| [AGENTS.md](./AGENTS.md) | Short agent entry: status, conventions, verification |
 | [CONTEXT.md](./CONTEXT.md) | Full design: goals, decisions, flows, risks |
 | [docs/API.md](./docs/API.md) | batchexecute RPCs: get, delete, upload, poll |
 | [docs/NBLC-FORMAT.md](./docs/NBLC-FORMAT.md) | Self-contained compact file format (v1) |
@@ -64,7 +65,7 @@ CI runs both on every push and pull request to `main`.
 
 **Compact:** select sources → fetch (`hizoJc`) → merge (NBLC) → upload (`izAoDd`) → poll ready (`rLM1Ne`) → delete originals (`tGMBJ`)
 
-**Decompact:** fetch NBLC source → parse (with NotebookLM round-trip fallbacks) → upload each section → delete compacted source
+**Decompact:** fetch NBLC source → parse (with NotebookLM round-trip fallbacks) → upload each section (`addYoutube` / `addUrl` / `addText`) → delete compacted source
 
 **Portable decompact:** all metadata lives inside the uploaded NBLC markdown — no cross-browser storage dependency.
 

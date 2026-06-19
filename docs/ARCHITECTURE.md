@@ -1,6 +1,6 @@
 # Architecture
 
-**Implementation status:** Phase 3 complete (`v1.2.0`) — full compact and decompact flows. Phase 4 (smart URL restore, dynamic `bl`) is planned. See [AGENTS.md](../AGENTS.md).
+**Implementation status:** Phase 4 complete (`v1.3.1`) — smart URL/YouTube restore on decompact; dynamic `bl` extraction; correct YouTube URL capture on compact. See [AGENTS.md](../AGENTS.md).
 
 ## System context
 
@@ -36,8 +36,10 @@
 ### `lib/notebooklm-api.js`
 
 - `extractNotebookId()` from URL
-- `extractATToken()` from page
+- `extractATToken()` from page (CSRF for batchexecute)
+- `extractBlVersion()` from page (`cfb2h` in `WIZ_global_data` or script tags)
 - `extractSourcesFromDOM()` / `getSelectedSourceIds()`
+- `extractUrlFromContent()` — fallback URL from `Source:` line in fetched markdown
 - `isNblcSource(title)` — detect compacted sources for Decompact button
 
 ### `lib/source-panel-inject.js`
@@ -49,7 +51,8 @@
 
 ### `lib/nblc-format.js`
 
-- Pure functions: `compactSources()`, `parseNblc()`, `validateNblc()`
+- Pure functions: `compactSources()`, `parseNblc()`, `validateNblc()`, `isNblcTitle()`
+- Decompact helpers: `resolveDecompactUpload()`, `enrichSourceForDecompact()`, `extractUrlFromContent()`, `describeDecompactMethod()`
 - Parser tolerates NotebookLM round-trip: collapsed header lines, stripped `---` markers, fallback via `---END-META---` and `# [N] Title` headings
 - No Chrome dependencies — unit test target
 
@@ -62,10 +65,14 @@
 
 ### `background/source-api.js`
 
+All actions accept optional `blVersion` (from `extractBlVersion()`); falls back to `DEFAULT_BL_VERSION`.
+
 | action | RPC | Status | Notes |
 |--------|-----|--------|-------|
-| `getContent` | hizoJc | ✅ | Returns `{ title, content, url? }` |
+| `getContent` | hizoJc | ✅ | Returns `{ title, content, url?, sourceType? }`; URL from metadata slots `[7]` / `[5]` |
 | `addText` | izAoDd | ✅ | Title + content; uses `buildTemplateBlock()` |
+| `addUrl` | izAoDd | ✅ | Web URL at source-spec slot 2 |
+| `addYoutube` | izAoDd | ✅ | YouTube URL at source-spec slot 7 |
 | `getNotebook` | rLM1Ne | ✅ | Returns source status for polling |
 | `waitForSourceReady` | rLM1Ne | ✅ | Polls until status READY (2) |
 | `delete` | tGMBJ | ✅ | Single or batch |
@@ -82,7 +89,7 @@ Pure helpers for extracting source IDs and status from batchexecute responses. U
 
 ### `content/decompact-modal.js`
 
-**Flow:** fetch NBLC → parse preview (N sources) → confirm → upload loop (`addText` + `waitForSourceReady` per source) → delete compacted → clear storage
+**Flow:** fetch NBLC → parse preview (N sources, shows restore method + URL per row) → confirm → upload loop (`addYoutube` / `addUrl` / `addText` + `waitForSourceReady` per source) → delete compacted → clear storage
 
 **States:** `fetching | preview | uploading | deleting | success | error`
 
@@ -97,7 +104,7 @@ sequenceDiagram
     participant API as batchexecute
 
     U->>CS: Compact (N sources)
-    CS->>BG: getContent × N
+    CS->>BG: getContent × N (with blVersion)
     BG->>API: hizoJc
     API-->>BG: content
     BG-->>CS: sources[]
@@ -127,10 +134,17 @@ sequenceDiagram
     CS->>BG: getContent(compactedId)
     BG->>API: hizoJc
     API-->>BG: NBLC markdown
-    CS->>CS: parseNblc()
+    CS->>CS: parseNblc() + enrichSourceForDecompact()
     loop Each source block
-        CS->>BG: addText(title, content)
+        alt YouTube URL found
+            CS->>BG: addYoutube(url)
+        else Web URL found
+            CS->>BG: addUrl(url)
+        else Fallback
+            CS->>BG: addText(title, content)
+        end
         BG->>API: izAoDd
+        CS->>BG: waitForSourceReady
     end
     CS->>BG: delete(compactedId)
     BG->>API: tGMBJ
@@ -155,8 +169,8 @@ sequenceDiagram
 
 ## Testing strategy
 
-1. **Unit tests** for `nblc-format.js` (merge/roundtrip parse)
-2. **Manual** on notebooklm.google.com with 2–3 small pasted-text sources
+1. **Unit tests:** `test/nblc-format.test.js`, `test/rpc-parse.test.mjs`, `test/source-api.test.mjs`
+2. **Manual** on notebooklm.google.com with pasted-text, web, and YouTube sources
 3. **Cross-PC** decompact: compact on account A machine, decompact on account B (same Google account)
 4. **Regression** MutationObserver must not freeze page (see Source-Downloader incident)
 

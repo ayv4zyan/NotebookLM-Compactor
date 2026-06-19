@@ -9,9 +9,9 @@ Quick entry point for AI coding agents. **Full design lives in [CONTEXT.md](./CO
 | **1** | ✅ Done | NBLC merge/parse, Compact UI, `chrome.storage` backup, optional zip download. **No upload or delete.** |
 | **2** | ✅ Done | `addText` (`izAoDd`), `getNotebook` poll (`rLM1Ne`), `delete` (`tGMBJ`), full compact flow |
 | **3** | ✅ Done | Decompact UI + parse + upload N + delete compacted |
-| **4** | Planned | Smart URL/YouTube restore; dynamic `bl` extraction |
+| **4** | ✅ Done | Smart URL/YouTube restore; dynamic `bl` extraction; YouTube URL capture fix (`v1.3.1`) |
 
-**Extension version:** `1.2.0` (manifest) · **GitHub:** private repo `ayv4zyan/NotebookLM-Compactor`
+**Extension version:** `1.3.1` (manifest) · **GitHub:** private repo `ayv4zyan/NotebookLM-Compactor`
 
 ## Before you code
 
@@ -34,20 +34,21 @@ Quick entry point for AI coding agents. **Full design lives in [CONTEXT.md](./CO
 ```bash
 node test/nblc-format.test.js
 node test/rpc-parse.test.mjs
+node test/source-api.test.mjs
 ```
 
-CI runs both on every push/PR to `main`.
+CI runs all three on every push/PR to `main`.
 
 ## Git workflow
 
 - **`main`** = stable; feature branches (e.g. `phase-2`) merged via PR.
 - No long-lived `develop` branch.
-- Release: tag `v*` (e.g. `v1.2.0`) → GitHub Action builds `notebooklm-compactor.zip` and attaches to Release.
+- Release: tag `v*` (e.g. `v1.3.1`) → GitHub Action builds `notebooklm-compactor.zip` and attaches to Release.
 
-## Phase 4 checklist (next agent task)
+## Phase 4 checklist (complete)
 
-1. Smart URL/YouTube restore from NBLC metadata (`izAoDd` URL slots).
-2. Proactive `bl` extraction from page HTML.
+1. ✅ Smart URL/YouTube restore from NBLC metadata (`izAoDd` URL slots).
+2. ✅ Proactive `bl` extraction from page HTML (`cfb2h` via `extractBlVersion()`).
 3. Manual test: compact on one notebook, decompact on same or different machine (same Google account).
 
 ## Resolved from planning
@@ -60,4 +61,4 @@ CI runs both on every push/PR to `main`.
 
 1. Exact NotebookLM source count limit (~50 assumed).
 2. Max pasted-text source size — stress-test with 30+ long transcripts (not yet verified at scale).
-3. Whether to extract `bl` from page HTML proactively (Phase 4).
+3. ~~Whether to extract `bl` from page HTML proactively~~ — **resolved:** yes, with hardcoded fallback.

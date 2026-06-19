@@ -45,7 +45,7 @@ version: 1
 created: 2026-06-19T14:30:00Z
 notebook: optional-notebook-slug-or-id
 source_count: 33
-compactor: NotebookLM-Compactor/1.2.0
+compactor: NotebookLM-Compactor/1.3.1
 ---END-BUNDLE---
 
 # NotebookLM Compactor Bundle
@@ -90,7 +90,7 @@ url: https://www.youtube.com/watch?v=xxxxx
 | `title` | yes | Original source title; used on decompact upload |
 | `type` | yes | `youtube` \| `web` \| `pdf` \| `text` \| `gdoc` \| `markdown` \| `unknown` |
 | `original_id` | no | NotebookLM UUID before delete (audit only; new IDs on restore) |
-| `url` | no | Original URL if known — enables Phase 4 smart re-import |
+| `url` | no | Original URL if known — enables live link restore on decompact (`addYoutube` / `addUrl`) |
 
 ### Content rules
 
@@ -134,7 +134,7 @@ function compactSources(sources, { notebookId, version }) {
 }
 ```
 
-Input `sources[]` from `hizoJc` fetch: `{ id, title, content, type, url? }`.
+Input `sources[]` from `hizoJc` fetch: `{ id, title, content, type, url? }`. Compact uses DOM icon type + API `sourceType` + `url` from metadata (`metadata[7]` / `metadata[5]`).
 
 ---
 
@@ -173,12 +173,19 @@ Bundles compacted with any extension version (`1.1.0`, `1.2.0`, etc.) remain dec
 
 ## Decompact upload mapping
 
-| meta.type | v1 action | Phase 4 action |
-|-----------|-----------|----------------|
-| any | `izAoDd` pasted text with `title` + `content` | — |
-| `youtube` + url | pasted text | `izAoDd` YouTube URL at slot 7 |
-| `web` + url | pasted text | `izAoDd` web URL at slot 2 |
-| `pdf` | pasted text only | cannot restore binary PDF |
+Implemented in `resolveDecompactUpload()` (`lib/nblc-format.js`). URL may come from `url:` meta or be recovered from section content (`Source:` line, markdown links, bare `youtube.com` / `youtu.be` URLs) when NotebookLM strips meta on round-trip.
+
+| Condition | Upload action | RPC payload |
+|-----------|---------------|-------------|
+| `youtube` type + YouTube URL (meta or content) | `addYoutube` | `izAoDd` — URL at source-spec slot 7 |
+| `web` type + URL (meta or content) | `addUrl` | `izAoDd` — URL at source-spec slot 2 |
+| YouTube URL found, type unknown | `addYoutube` | inferred from URL hostname |
+| No recoverable URL (e.g. `pdf`, pasted text) | `addText` | `izAoDd` — `title` + `content` |
+| `pdf` | `addText` only | cannot restore binary PDF |
+
+Decompact preview shows restore method per source. Warning `no URL found — will paste transcript` means live link restore is not possible for that section.
+
+**Note:** Bundles compacted before `v1.3.1` may lack `url:` meta (YouTube URLs were not extracted correctly during compact). Re-compact from originals to store URLs.
 
 ---
 

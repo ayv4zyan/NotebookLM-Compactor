@@ -78,7 +78,14 @@ function buildTemplateBlock() {
 
 **Implemented in:** `background/source-api.js`. Originally adapted from `../NotebookLM-Source-Downloader/background/source-api.js`.
 
-Fetch full text content of a source. Used for compact (fetch originals) and decompact (fetch NBLC bundle). Compactor also returns `url` when present in API metadata or `Source:` line in content.
+Fetch full text content of a source. Used for compact (fetch originals) and decompact (fetch NBLC bundle).
+
+Compactor returns `url` and `sourceType` extracted from the source metadata array (`innerData[0][2]`):
+
+- URL precedence: `metadata[7][0]` → `metadata[5][0]` (YouTube block) → `metadata[0]` if bare `http…`
+- Type code: `metadata[4]` mapped to `youtube` (9), `web` (5), `text` (4), `pdf` (3), `gdoc` (1)
+
+Prepends `Source: [url](url)` to content when URL is known. Content-script fallbacks: `extractUrlFromContent()` on markdown body.
 
 ### Params
 
@@ -98,7 +105,7 @@ Nested JSON segment tree → markdown. Parser walks `innerData[3][0][0]` segment
 - Bold, code, links from style arrays
 - Tables from `segment[4]`
 
-Returns `{ title, content, url? }`.
+Returns `{ title, content, url?, sourceType? }`.
 
 ---
 
@@ -125,7 +132,9 @@ const fReq = JSON.stringify([[[ "tGMBJ", inner, null, "generic"]]]);
 
 ---
 
-## RPC: ADD_SOURCE — `izAoDd` (pasted text) — **NEEDED FOR COMPACTOR**
+## RPC: ADD_SOURCE — `izAoDd` (pasted text)
+
+**Implemented as:** `addText` in `background/source-api.js`.
 
 Maps to UI: **Add sources → Copied text → Insert**
 
@@ -155,7 +164,9 @@ Returns created source object with new `source_id`. Parse from `result[0]` per n
 
 ---
 
-## RPC: ADD_SOURCE — URL
+## RPC: ADD_SOURCE — URL / YouTube
+
+**Implemented as:** `addUrl` and `addYoutube` in `background/source-api.js`.
 
 ```javascript
 // Regular website — URL at position 2
@@ -165,7 +176,7 @@ Returns created source object with new `source_id`. Parse from `result[0]` per n
 [[null, null, null, null, null, null, null, [url], null, null, 1]]
 ```
 
-Detect: `youtube.com` or `youtu.be` → use position 7.
+Both use `buildTemplateBlock()` tail. Detect: `youtube.com` or `youtu.be` → `addYoutube` (slot 7); otherwise `addUrl` (slot 2).
 
 ---
 
@@ -216,13 +227,15 @@ Extend Source-Downloader pattern:
 chrome.runtime.sendMessage({
   type: "source-api",
   body: {
-    action: "getContent" | "delete" | "addText" | "getNotebook",
+    action: "getContent" | "delete" | "addText" | "addUrl" | "addYoutube" | "getNotebook",
     sourceId,
     sourceIds,
     notebookId,
     atToken,
+    blVersion,  // optional — from extractBlVersion(); falls back to DEFAULT_BL_VERSION
     title,      // addText
     content,    // addText
+    url,        // addUrl / addYoutube
   },
 });
 
@@ -256,11 +269,13 @@ Store string names in NBLC meta (`youtube`, `web`, `pdf`, `text`, `gdoc`).
 | `getNotebook` | `rLM1Ne` | ✅ | Source status lookup |
 | `waitForSourceReady` | `rLM1Ne` | ✅ | Poll until READY (2); exposed as message action |
 | `delete` | `tGMBJ` | ✅ | Batch delete; adapted from Ultra Exporter |
-| `addUrl` / `addYoutube` | `izAoDd` | 📋 Phase 4 | Different payload slot positions |
-| Extract `bl` from page | — | 📋 Phase 4 | Currently hardcoded `BL_VERSION` in source-api.js |
+| `addUrl` / `addYoutube` | `izAoDd` | ✅ | URL at slot 2; YouTube at slot 7 |
+| Extract `bl` from page | — | ✅ | `extractBlVersion()` in content script; `DEFAULT_BL_VERSION` fallback |
 
-### Compact flow notes (implemented)
+### Compact / decompact flow notes (implemented)
 
+- Pass `blVersion` from `extractBlVersion()` on every message; background falls back to `DEFAULT_BL_VERSION`.
 - Use `buildTemplateBlock()` on all `izAoDd` and `rLM1Ne` calls (required on Gemini-migrated accounts).
-- After `addText`, parse new `source_id` via `background/rpc-parse.js`; poll before deleting originals.
-- On upload failure: keep `chrome.storage` pending-compact entry; do **not** call `delete`.
+- After any upload (`addText` / `addUrl` / `addYoutube`), parse new `source_id` via `background/rpc-parse.js`; poll before deleting originals or proceeding.
+- On upload failure: keep `chrome.storage` pending entry; do **not** call `delete`.
+- Decompact: `resolveDecompactUpload()` picks `addYoutube` / `addUrl` / `addText` per source; preview shows method before confirm.
