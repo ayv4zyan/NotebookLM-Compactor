@@ -1,7 +1,8 @@
 (function () {
-  const { api, format, store } = window.NBLC;
+  const { api, format, store, modalA11y } = window.NBLC;
 
   const PHASE = {
+    EMPTY: "empty",
     FETCHING: "fetching",
     PREVIEW: "preview",
     UPLOADING: "uploading",
@@ -10,7 +11,15 @@
     ERROR: "error",
   };
 
+  const EMPTY_REASON_MESSAGES = {
+    "no-selection": "Select exactly one NBLC bundle in the source panel.",
+    multiple: "Multiple sources are selected. Select only one NBLC bundle.",
+    "not-nblc":
+      "The selected source is not an NBLC bundle. Select a source titled like <code>📦 NBLC · …</code>.",
+  };
+
   let overlay = null;
+  let a11y = null;
   let phase = PHASE.FETCHING;
   let compactedSourceId = null;
   let compactedTitle = "";
@@ -20,9 +29,14 @@
   let errorMessage = "";
   let ackDeleteCompacted = false;
   let ackDataLossRisk = false;
+  let emptyStateReason = "no-selection";
 
   function sendSourceApi(body) {
     return chrome.runtime.sendMessage({ type: "source-api", body });
+  }
+
+  function notifyRecoveryRefresh() {
+    window.dispatchEvent(new CustomEvent("nblc-recovery-refresh"));
   }
 
   function isBusy() {
@@ -215,12 +229,14 @@
         status: `Restored ${sources.length} sources`,
       };
       render();
+      notifyRecoveryRefresh();
     } catch (error) {
       console.error("[DecompactModal] Decompact failed:", error);
       phase = PHASE.ERROR;
       errorMessage =
         error instanceof Error ? error.message : "Decompact failed unexpectedly";
       render();
+      notifyRecoveryRefresh();
     }
   }
 
@@ -367,11 +383,59 @@
     `;
   }
 
+  function renderNblcBundleList() {
+    const bundles = api.extractSourcesFromDOM().filter((s) => s.isNblc);
+
+    if (bundles.length === 0) {
+      return `<p class="nblc-empty-detail">No NBLC bundles in this notebook yet. Use Compact to create one.</p>`;
+    }
+
+    const list = bundles
+      .map(
+        (source) => `
+        <div class="nblc-source-item nblc-preview-item nblc-nblc-source">
+          <span class="nblc-preview-index">📦</span>
+          <span>${escapeHtml(source.title)}</span>
+        </div>
+      `
+      )
+      .join("");
+
+    return `
+      <p class="nblc-preview-note">NBLC bundles in this notebook:</p>
+      <div class="nblc-source-list nblc-preview-list">${list}</div>
+    `;
+  }
+
+  function renderEmptyBody() {
+    const message =
+      EMPTY_REASON_MESSAGES[emptyStateReason] ||
+      EMPTY_REASON_MESSAGES["no-selection"];
+
+    return `
+      <div class="nblc-empty-panel">
+        <p class="nblc-empty-title">Can't decompact yet</p>
+        <p class="nblc-empty-detail">${message}</p>
+      </div>
+
+      <p class="nblc-preview-note">
+        NBLC bundles are titled like:
+        <code>📦 NBLC · 12 sources · 2026-06-19</code>
+      </p>
+
+      ${renderNblcBundleList()}
+
+      <button class="nblc-primary-btn" data-action="close">Close</button>
+    `;
+  }
+
   function render() {
     if (!overlay) return;
 
     let body = "";
-    if (phase === PHASE.SUCCESS) {
+    if (phase === PHASE.EMPTY) {
+      body = renderEmptyBody();
+    } else if (phase === PHASE.SUCCESS) {
       body = renderSuccessBody();
     } else if (phase === PHASE.ERROR) {
       body = renderErrorBody();
@@ -399,6 +463,22 @@
         </div>
       </div>
     `;
+
+    a11y?.afterRender();
+  }
+
+  function ensureOverlay() {
+    if (overlay) return;
+
+    overlay = document.createElement("div");
+    overlay.id = "nblc-decompact-modal-root";
+    overlay.addEventListener("click", handleClick);
+    document.body.appendChild(overlay);
+
+    a11y = modalA11y.attachModalA11y(overlay, () => ({
+      isBusy,
+      onClose: close,
+    }));
   }
 
   function escapeHtml(text) {
@@ -452,26 +532,40 @@
     }
   }
 
-  async function open(sourceId, title = "") {
+  async function open(sourceIdOrOptions, title = "") {
+    let sourceId = null;
+    let emptyReason = null;
+
+    if (typeof sourceIdOrOptions === "object" && sourceIdOrOptions !== null) {
+      sourceId = sourceIdOrOptions.sourceId ?? null;
+      title = sourceIdOrOptions.title || "";
+      emptyReason = sourceIdOrOptions.emptyReason ?? null;
+    } else {
+      sourceId = sourceIdOrOptions || null;
+    }
+
     compactedSourceId = sourceId;
     compactedTitle = title;
     parsed = null;
     uploadedSourceIds = [];
-    phase = PHASE.FETCHING;
     progress = { current: 0, total: 0, status: "" };
     errorMessage = "";
     ackDeleteCompacted = false;
     ackDataLossRisk = false;
+    emptyStateReason = emptyReason || "no-selection";
 
-    if (!overlay) {
-      overlay = document.createElement("div");
-      overlay.id = "nblc-decompact-modal-root";
-      overlay.addEventListener("click", handleClick);
-      document.body.appendChild(overlay);
+    ensureOverlay();
+    overlay.style.display = "block";
+    a11y.onOpen();
+
+    if (!sourceId || emptyReason) {
+      phase = PHASE.EMPTY;
+      render();
+      return;
     }
 
+    phase = PHASE.FETCHING;
     render();
-    overlay.style.display = "block";
 
     const notebookId = api.extractNotebookId();
     const atToken = api.extractATToken();
@@ -518,7 +612,9 @@
 
   function close() {
     if (isBusy()) return;
+    a11y?.onClose();
     if (overlay) overlay.style.display = "none";
+    notifyRecoveryRefresh();
   }
 
   window.NBLC.decompactModal = { open, close };
