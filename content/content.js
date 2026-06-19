@@ -1,5 +1,5 @@
 (function () {
-  const { inject, compactModal, store } = window.NBLC;
+  const { inject, compactModal, decompactModal, store } = window.NBLC;
 
   let observer = null;
 
@@ -14,6 +14,12 @@
     window.addEventListener("nblc-compact", (event) => {
       const sourceIds = event.detail?.sourceIds || null;
       compactModal.open(sourceIds);
+    });
+
+    window.addEventListener("nblc-decompact", (event) => {
+      const sourceId = event.detail?.sourceId;
+      const title = event.detail?.title || "";
+      if (sourceId) decompactModal.open(sourceId, title);
     });
   }
 
