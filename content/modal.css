@@ -79,17 +79,6 @@
   overflow-y: auto;
 }
 
-.nblc-phase-banner {
-  font-size: 13px;
-  color: #1d4ed8;
-  background: #eff6ff;
-  border: 1px solid #bfdbfe;
-  border-radius: 8px;
-  padding: 10px 12px;
-  margin-bottom: 16px;
-  line-height: 1.4;
-}
-
 .nblc-filter-input {
   width: 100%;
   box-sizing: border-box;
