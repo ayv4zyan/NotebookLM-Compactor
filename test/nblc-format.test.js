@@ -86,9 +86,124 @@ function testStripDuplicateHeading() {
   assert.strictEqual(sources[0].content, "body only");
 }
 
+function testCollapsedBundleHeader() {
+  const collapsed = `---NBLC-BUNDLE---
+version: 1 created: 2026-06-19T07:57:34.565Z source_count: 2 notebook: 874f2606-8396-40dc-b67a-6a07704cd90a compactor: NotebookLM-Compactor/1.2.0
+---END-BUNDLE---
+
+# NotebookLM Compactor Bundle
+
+---NBLC-SOURCE---
+index: 1 title: First Source type: text
+---END-META---
+
+# [1] First Source
+
+Hello one.
+
+---NBLC-SOURCE---
+index: 2 title: Second Source type: text
+---END-META---
+
+# [2] Second Source
+
+Hello two.
+`;
+
+  const { bundle, sources } = parseNblc(collapsed);
+
+  assert.strictEqual(bundle.version, 1);
+  assert.strictEqual(bundle.source_count, 2);
+  assert.strictEqual(bundle.notebook, "874f2606-8396-40dc-b67a-6a07704cd90a");
+  assert.strictEqual(bundle.compactor, "NotebookLM-Compactor/1.2.0");
+  assert.strictEqual(sources.length, 2);
+  assert.strictEqual(sources[0].title, "First Source");
+  assert.strictEqual(sources[1].content, "Hello two.");
+}
+
+function testNotebookLmStrippedSourceMarkers() {
+  const stripped = `---NBLC-BUNDLE---
+version: 1 created: 2026-06-19T07:57:34.565Z source_count: 2 notebook: nb-1 compactor: NotebookLM-Compactor/1.2.0
+---END-BUNDLE---
+
+# NotebookLM Compactor Bundle
+
+> 2 sources compacted.
+
+index: 1 title: First Source type: text
+---END-META---
+
+# [1] First Source
+
+Hello one.
+
+index: 2 title: Second Source type: youtube url: https://www.youtube.com/watch?v=abc
+---END-META---
+
+# [2] Second Source
+
+Hello two.
+`;
+
+  const { bundle, sources } = parseNblc(stripped);
+
+  assert.strictEqual(bundle.source_count, 2);
+  assert.strictEqual(sources.length, 2);
+  assert.strictEqual(sources[0].title, "First Source");
+  assert.strictEqual(sources[0].content, "Hello one.");
+  assert.strictEqual(sources[1].type, "youtube");
+  assert.strictEqual(sources[1].url, "https://www.youtube.com/watch?v=abc");
+}
+
+function testNotebookLmHeadingsOnly() {
+  const headingsOnly = `---NBLC-BUNDLE---
+version: 1
+created: 2026-06-19T12:00:00Z
+source_count: 2
+---END-BUNDLE---
+
+# NotebookLM Compactor Bundle
+
+# [1] First Source
+
+Hello one.
+
+# [2] Second Source
+
+Hello two.
+`;
+
+  const { sources } = parseNblc(headingsOnly);
+
+  assert.strictEqual(sources.length, 2);
+  assert.strictEqual(sources[0].title, "First Source");
+  assert.strictEqual(sources[1].content, "Hello two.");
+}
+
+function testPlainTextIndexedHeadings() {
+  const plain = `---NBLC-BUNDLE---
+version: 1
+created: 2026-06-19T12:00:00Z
+source_count: 1
+---END-BUNDLE---
+
+[1] Plain Heading Source
+
+Body text here.
+`;
+
+  const { sources } = parseNblc(plain);
+  assert.strictEqual(sources[0].title, "Plain Heading Source");
+  assert.strictEqual(sources[0].content, "Body text here.");
+}
+
 testRoundtrip();
 testCompactedTitle();
 testSourceCountMismatch();
 testStripDuplicateHeading();
+testCollapsedBundleHeader();
+testNotebookLmStrippedSourceMarkers();
+testNotebookLmHeadingsOnly();
+testPlainTextIndexedHeadings();
 
 console.log("nblc-format tests passed");
