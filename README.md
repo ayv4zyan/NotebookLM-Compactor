@@ -1,24 +1,58 @@
 # NotebookLM-Compactor
 
-Chrome extension (planned) that merges many NotebookLM sources into one to save **source count quota**, with full **decompact** restore on any machine.
+Chrome extension that merges many NotebookLM sources into one **NBLC** bundle to save **source count quota**, with full **decompact** restore on any machine.
 
-**Status:** Documentation scaffold only — not yet implemented.
+**Status:** Phase 1 complete (local compact preview). Phase 2 (upload + delete) not started.
+
+| Phase | What works |
+|-------|------------|
+| **1** ✅ | Select sources → fetch → merge NBLC → `chrome.storage` backup → optional zip / `.md` download |
+| **2** | Upload compacted source, poll until ready, delete originals |
+| **3** | Decompact NBLC back into separate sources |
+| **4** | Smart URL/YouTube restore from metadata |
+
+## Install (development)
+
+1. Clone this repo (private GitHub: `ayv4zyan/NotebookLM-Compactor`).
+2. Open `chrome://extensions` → enable **Developer mode**.
+3. **Load unpacked** → select this folder (`NotebookLM-Compactor/`).
+4. Open [notebooklm.google.com](https://notebooklm.google.com), select sources, click **Compact** (`inventory_2` icon in the source panel).
+
+Phase 1 does **not** upload or delete anything in NotebookLM — safe for testing.
+
+## Releases
+
+Push a version tag to trigger a GitHub Release with an installable zip:
+
+```bash
+git tag v1.0.0
+git push origin v1.0.0
+```
+
+Download `notebooklm-compactor.zip` from the Release assets, unzip, and load unpacked in Chrome — or upload to Chrome Web Store.
+
+## Tests
+
+```bash
+node test/nblc-format.test.js
+```
+
+CI runs this on every push and pull request to `main`.
 
 ## For AI agents / developers
 
-**Start here:** [CONTEXT.md](./CONTEXT.md)
-
 | Document | Contents |
 |----------|----------|
-| [CONTEXT.md](./CONTEXT.md) | Goals, decisions, flows, risks, next steps |
+| [AGENTS.md](./AGENTS.md) | Short agent entry: status, conventions, Phase 2 checklist |
+| [CONTEXT.md](./CONTEXT.md) | Full design: goals, decisions, flows, risks |
 | [docs/API.md](./docs/API.md) | batchexecute RPCs: get, delete, upload, poll |
 | [docs/NBLC-FORMAT.md](./docs/NBLC-FORMAT.md) | Self-contained compact file format (v1) |
 | [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md) | Components, sequences, error handling |
 
-## Related repo folders
+## Related projects
 
-- `../NotebookLM-Source-Downloader/` — working reference implementation (download only)
-- `../NotebookLM-Ultra-Exporter.crx` — original extension used for reverse engineering
+- `../NotebookLM-Source-Downloader/` — working reference (download only; sibling folder, not in this git repo)
+- `../NotebookLM-Ultra-Exporter.crx` — original reverse-engineering reference
 
 ## External API references
 
@@ -27,9 +61,9 @@ Chrome extension (planned) that merges many NotebookLM sources into one to save 
 
 ## Quick summary
 
-**Compact:** select sources → fetch (`hizoJc`) → merge (NBLC) → upload (`izAoDd`) → delete originals (`tGMBJ`)
+**Compact (full flow, after Phase 2):** select sources → fetch (`hizoJc`) → merge (NBLC) → upload (`izAoDd`) → poll ready (`rLM1Ne`) → delete originals (`tGMBJ`)
 
-**Decompact:** fetch NBLC source → parse → upload each section → delete compacted source
+**Decompact (Phase 3):** fetch NBLC source → parse → upload each section → delete compacted source
 
 **Portable decompact:** all metadata lives inside the uploaded NBLC markdown — no cross-browser storage dependency.
 
