@@ -2,7 +2,7 @@
 
 **Read this file first.** It captures the full design, API knowledge, and decisions from the planning session.
 
-**Implementation status (2026-06-19):** Phase 1 ✅ shipped in extension `v1.0.0`. Phase 2 next. See [AGENTS.md](./AGENTS.md) for a short agent entry point.
+**Implementation status (2026-06-19):** Phase 1 ✅ `v1.0.0`. Phase 2 ✅ `v1.1.0` (full compact). Phase 3 next. See [AGENTS.md](./AGENTS.md) for a short agent entry point.
 
 ## Project goal
 
@@ -121,10 +121,10 @@ Full details: `docs/API.md`
 | Operation | RPC ID | Status in Compactor |
 |-----------|--------|---------------------|
 | Get source content | `hizoJc` | ✅ Phase 1 (`background/source-api.js`) |
-| Delete source(s) | `tGMBJ` | 📋 Phase 2 (reference in Source-Downloader) |
-| Add pasted text | `izAoDd` | 📋 Phase 2 |
+| Delete source(s) | `tGMBJ` | ✅ Phase 2 (batch delete) |
+| Add pasted text | `izAoDd` | ✅ Phase 2 |
 | Add file (PDF etc.) | `o4cbdc` + resumable upload | 📋 Not needed v1 |
-| List notebook / poll status | `rLM1Ne` | 📋 Phase 2 |
+| List notebook / poll status | `rLM1Ne` | ✅ Phase 2 (`waitForSourceReady`) |
 | Re-add URL / YouTube | `izAoDd` (different payload slots) | 📋 Phase 4 |
 
 Auth: `window.WIZ_global_data.SNlM0e` or regex in page scripts. Session cookies via `credentials: 'include'`.
@@ -173,13 +173,13 @@ Cleanup: remove key on success; keep on failure; sweep stale >24h.
 | Phase | Deliverable | Status |
 |-------|-------------|--------|
 | **1** | NBLC merge/split + Compact UI + local backup in storage + download zip option. **No delete, no upload.** | ✅ Done |
-| **2** | `addText` + `waitForSourceReady` + full compact with delete | 🔜 Next |
-| **3** | Decompact UI + parse + upload N + delete compacted | Planned |
+| **2** | `addText` + `waitForSourceReady` + full compact with delete | ✅ Done |
+| **3** | Decompact UI + parse + upload N + delete compacted | 🔜 Next |
 | **4** | Smart restore: URL/YouTube from metadata; extract `bl` from page HTML | Planned |
 
-### Phase 1 behavior (current)
+### Compact behavior (current)
 
-Compact modal shows a preview banner. On success: NBLC written to `chrome.storage`, optional backup zip (original `.md` files + compacted `.md`). NotebookLM sources are **unchanged**.
+Select sources → fetch → merge NBLC → `chrome.storage` backup → upload as pasted text → poll until READY → delete originals → clear storage. Optional backup zip on success. On upload failure: storage retained, originals unchanged. On delete failure after upload: storage retained, both compacted and originals remain.
 
 ---
 
@@ -190,7 +190,7 @@ NotebookLM-Compactor/
   AGENTS.md                  ← short agent entry (status, conventions)
   CONTEXT.md                 ← this file (full design)
   README.md
-  manifest.json              ✅ v1.0.0
+  manifest.json              ✅ v1.1.0
   .github/workflows/         ✅ ci.yml (tests), release.yml (zip on v* tag)
   docs/
     API.md
@@ -198,7 +198,8 @@ NotebookLM-Compactor/
     ARCHITECTURE.md
   background/
     index.js                 ✅ message router + stale storage sweep
-    source-api.js            ✅ getContent only; Phase 2: add, delete, getNotebook
+    source-api.js            ✅ getContent, addText, getNotebook, delete, waitForSourceReady
+    rpc-parse.js             ✅ source ID / status parsing (unit tested)
     storage-sweep.js
   lib/
     notebooklm-api.js        ✅ DOM scrape, AT token, isNblcSource
@@ -207,11 +208,12 @@ NotebookLM-Compactor/
     manifest-store.js        ✅ pending-compact / pending-decompact keys
   content/
     content.js
-    compact-modal.js         ✅ Phase 1 preview flow
+    compact-modal.js         ✅ full compact flow (upload → poll → delete)
     decompact-modal.js         📋 Phase 3
     modal.css
   test/
     nblc-format.test.js        ✅ roundtrip + validation
+    rpc-parse.test.mjs         ✅ API response parsing
   vendor/
     jszip.min.js               ✅ optional backup zip
   icons/
@@ -260,7 +262,7 @@ Notebook ID: `/notebook/([a-f0-9-]+)` from `window.location.pathname`
 ## Open questions for implementer
 
 1. Exact NotebookLM source count limit (assume ~50; verify in UI when testing).
-2. Max pasted-text source size — test with 30+ long YouTube transcripts (Phase 2).
+2. Max pasted-text source size — stress-test with 30+ long YouTube transcripts (not yet verified at scale).
 3. ~~Whether to share `lib/` via copy or monorepo symlink~~ — **resolved:** copy/adapt from Source-Downloader.
 4. ~~Compact button label/icon~~ — **resolved:** `inventory_2` icon. Decompact button: Phase 3, enable for NBLC-titled sources only (`isNblcTitle()`).
 
@@ -273,17 +275,16 @@ NotebookLM Compactor/              # parent workspace (not a git repo)
   NotebookLM-Ultra-Exporter.crx    # original reverse-engineering source
   extracted/                       # unpacked CRX (reference only)
   NotebookLM-Source-Downloader/    # ✅ working download extension (sibling)
-  NotebookLM-Compactor/            # ✅ this extension — git repo, Phase 1 done
+  NotebookLM-Compactor/            # ✅ this extension — git repo, Phase 2 done
 ```
 
 ---
 
-## Next steps for agent (Phase 2)
+## Next steps for agent (Phase 3)
 
-1. Read [AGENTS.md](./AGENTS.md) and `docs/API.md` (`izAoDd`, `rLM1Ne`, `tGMBJ`).
-2. Extend `background/source-api.js`: `addText`, `getNotebook`, `delete` (+ `buildTemplateBlock()`).
-3. Add `waitForSourceReady(notebookId, sourceId)` — poll until status `2` (READY).
-4. Update `content/compact-modal.js`: after merge + storage backup → upload NBLC title/body → poll → delete originals → clear storage on success; abort delete on upload failure.
-5. Remove Phase 1 preview banner; update modal states (`uploading`, `deleting`).
-6. Manual test: 2–3 small pasted-text sources on notebooklm.google.com.
-7. Tag release (e.g. `v1.1.0`) when Phase 2 is stable.
+1. Read [AGENTS.md](./AGENTS.md) Phase 3 checklist and `docs/NBLC-FORMAT.md` (`parseNblc`).
+2. Add `content/decompact-modal.js`: fetch compacted source → parse preview → confirm → upload loop → delete compacted.
+3. Wire **Decompact** button in `lib/source-panel-inject.js` (enable for NBLC-titled sources via `isNblcTitle()`).
+4. Reuse existing `addText`, `waitForSourceReady`, `delete` actions from Phase 2.
+5. Manual test: compact a notebook, then decompact on same or different machine.
+6. Tag release (e.g. `v1.2.0`) when Phase 3 is stable.

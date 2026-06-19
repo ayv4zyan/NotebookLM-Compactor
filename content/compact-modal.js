@@ -5,6 +5,8 @@
     IDLE: "idle",
     FETCHING: "fetching",
     MERGING: "merging",
+    UPLOADING: "uploading",
+    DELETING: "deleting",
     SUCCESS: "success",
     ERROR: "error",
   };
@@ -90,7 +92,7 @@
   }
 
   async function runCompact() {
-    if (selectedIds.size === 0 || phase === PHASE.FETCHING || phase === PHASE.MERGING) {
+    if (selectedIds.size === 0 || isBusy()) {
       return;
     }
 
@@ -166,6 +168,15 @@
 
       const compactedTitle = format.buildCompactedTitle(fetched.length);
 
+      result = {
+        sources: fetched,
+        compactedContent,
+        compactedTitle,
+        charCount: compactedContent.length,
+        warnings: validation.warnings,
+        compactedSourceId: null,
+      };
+
       await store.savePendingCompact(notebookId, {
         phase: "fetched",
         sources: fetched,
@@ -173,13 +184,87 @@
         compactedSourceId: null,
       });
 
-      result = {
+      phase = PHASE.UPLOADING;
+      progress = {
+        current: fetched.length,
+        total: fetched.length,
+        status: `Uploading NBLC bundle: ${compactedTitle}`,
+      };
+      render();
+
+      const uploadResponse = await sendSourceApi({
+        action: "addText",
+        notebookId,
+        atToken,
+        title: compactedTitle,
+        content: compactedContent,
+      });
+
+      if (!uploadResponse?.success) {
+        throw new Error(uploadResponse?.error || "Failed to upload NBLC bundle");
+      }
+
+      const compactedSourceId = uploadResponse.sourceId;
+      result.compactedSourceId = compactedSourceId;
+
+      await store.savePendingCompact(notebookId, {
+        phase: "uploaded",
         sources: fetched,
         compactedContent,
-        compactedTitle,
-        charCount: compactedContent.length,
-        warnings: validation.warnings,
+        compactedSourceId,
+      });
+
+      progress = {
+        current: fetched.length,
+        total: fetched.length,
+        status: "Waiting for NotebookLM to finish processing...",
       };
+      render();
+
+      const readyResponse = await sendSourceApi({
+        action: "waitForSourceReady",
+        notebookId,
+        atToken,
+        sourceId: compactedSourceId,
+      });
+
+      if (!readyResponse?.success) {
+        throw new Error(
+          readyResponse?.error ||
+            "Uploaded source did not become ready — originals were not deleted"
+        );
+      }
+
+      phase = PHASE.DELETING;
+      progress = {
+        current: 0,
+        total: ids.length,
+        status: `Deleting ${ids.length} original sources...`,
+      };
+      render();
+
+      await store.savePendingCompact(notebookId, {
+        phase: "deleting",
+        sources: fetched,
+        compactedContent,
+        compactedSourceId,
+      });
+
+      const deleteResponse = await sendSourceApi({
+        action: "delete",
+        notebookId,
+        atToken,
+        sourceIds: ids,
+      });
+
+      if (!deleteResponse?.success) {
+        throw new Error(
+          `${deleteResponse?.error || "Failed to delete original sources"}. ` +
+            "The NBLC bundle was uploaded but originals remain — check extension storage backup."
+        );
+      }
+
+      await store.clearPending(notebookId);
 
       if (downloadBackupZip) {
         await downloadBackupZipFile();
@@ -189,7 +274,7 @@
       progress = {
         current: fetched.length,
         total: fetched.length,
-        status: `Compacted ${fetched.length} sources (preview mode — not uploaded)`,
+        status: `Compacted ${fetched.length} sources into one NBLC source`,
       };
       render();
     } catch (error) {
@@ -209,7 +294,7 @@
   }
 
   function toggleSource(id) {
-    if (phase === PHASE.FETCHING || phase === PHASE.MERGING) return;
+    if (isBusy()) return;
     const next = new Set(selectedIds);
     if (next.has(id)) next.delete(id);
     else next.add(id);
@@ -218,7 +303,7 @@
   }
 
   function toggleSelectAll(filtered) {
-    if (phase === PHASE.FETCHING || phase === PHASE.MERGING) return;
+    if (isBusy()) return;
     if (selectedIds.size === filtered.length && filtered.length > 0) {
       selectedIds = new Set();
     } else {
@@ -228,15 +313,16 @@
   }
 
   function isBusy() {
-    return phase === PHASE.FETCHING || phase === PHASE.MERGING;
+    return (
+      phase === PHASE.FETCHING ||
+      phase === PHASE.MERGING ||
+      phase === PHASE.UPLOADING ||
+      phase === PHASE.DELETING
+    );
   }
 
   function renderIdleBody(filtered, allSelected) {
     return `
-      <div class="nblc-phase-banner">
-        Phase 1 preview — sources are backed up locally only. Nothing is uploaded or deleted.
-      </div>
-
       <input
         type="text"
         class="nblc-filter-input"
@@ -309,13 +395,13 @@
     return `
       <div class="nblc-success-panel">
         <div class="nblc-success-icon">✓</div>
-        <p class="nblc-success-title">${result.sources.length} sources merged</p>
+        <p class="nblc-success-title">${result.sources.length} sources compacted</p>
         <p class="nblc-success-detail">
           NBLC bundle: ${formatBytes(result.compactedContent)} ·
           Title: <code>${escapeHtml(result.compactedTitle)}</code>
         </p>
         <p class="nblc-success-note">
-          Backup saved in extension storage. Original sources are unchanged.
+          Uploaded to your notebook. Original sources were deleted.
         </p>
         ${warnings}
       </div>

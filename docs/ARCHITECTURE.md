@@ -1,6 +1,6 @@
 # Architecture
 
-**Implementation status:** Phase 1 complete — Compact UI fetches (`hizoJc`), merges NBLC, backs up to `chrome.storage`, optional zip download. Upload/delete/poll paths below are **designed** for Phase 2+. See [AGENTS.md](../AGENTS.md).
+**Implementation status:** Phase 2 complete — full compact flow (fetch, merge, upload, poll, delete). Decompact UI is Phase 3. See [AGENTS.md](../AGENTS.md).
 
 ## System context
 
@@ -61,20 +61,23 @@
 
 ### `background/source-api.js`
 
-| action | RPC | Phase 1 | Notes |
-|--------|-----|---------|-------|
+| action | RPC | Status | Notes |
+|--------|-----|--------|-------|
 | `getContent` | hizoJc | ✅ | Returns `{ title, content, url? }` |
-| `delete` | tGMBJ | — | Phase 2: single or batch |
-| `addText` | izAoDd | — | Phase 2: title + content |
-| `getNotebook` | rLM1Ne | — | Phase 2: poll source status |
+| `addText` | izAoDd | ✅ | Title + content; uses `buildTemplateBlock()` |
+| `getNotebook` | rLM1Ne | ✅ | Returns source status for polling |
+| `waitForSourceReady` | rLM1Ne | ✅ | Polls until status READY (2) |
+| `delete` | tGMBJ | ✅ | Single or batch |
+
+### `background/rpc-parse.js`
+
+Pure helpers for extracting source IDs and status from batchexecute responses. Unit tested via `test/rpc-parse.test.mjs`.
 
 ### `content/compact-modal.js`
 
-**Phase 1 flow:** select → confirm → fetch → merge → storage backup → success (optional zip/md download)
+**Flow:** select → confirm → fetch → merge → storage backup → upload → poll READY → delete originals → clear storage (optional zip on success)
 
-**Phase 1 states:** `idle | fetching | merging | success | error`
-
-**Phase 2 adds:** `uploading | deleting` and removes preview-only banner
+**States:** `idle | fetching | merging | uploading | deleting | success | error`
 
 ### `content/decompact-modal.js` (Phase 3 — not implemented)
 

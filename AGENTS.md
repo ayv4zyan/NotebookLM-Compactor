@@ -7,11 +7,11 @@ Quick entry point for AI coding agents. **Full design lives in [CONTEXT.md](./CO
 | Phase | Status | Notes |
 |-------|--------|-------|
 | **1** | ✅ Done | NBLC merge/parse, Compact UI, `chrome.storage` backup, optional zip download. **No upload or delete.** |
-| **2** | 🔜 Next | `addText` (`izAoDd`), `getNotebook` poll (`rLM1Ne`), `delete` (`tGMBJ`), full compact flow |
-| **3** | Planned | Decompact UI + parse + upload N + delete compacted |
+| **2** | ✅ Done | `addText` (`izAoDd`), `getNotebook` poll (`rLM1Ne`), `delete` (`tGMBJ`), full compact flow |
+| **3** | 🔜 Next | Decompact UI + parse + upload N + delete compacted |
 | **4** | Planned | Smart URL/YouTube restore; dynamic `bl` extraction |
 
-**Extension version:** `1.0.0` (manifest) · **GitHub:** private repo `ayv4zyan/NotebookLM-Compactor`
+**Extension version:** `1.1.0` (manifest) · **GitHub:** private repo `ayv4zyan/NotebookLM-Compactor`
 
 ## Before you code
 
@@ -33,23 +33,24 @@ Quick entry point for AI coding agents. **Full design lives in [CONTEXT.md](./CO
 
 ```bash
 node test/nblc-format.test.js
+node test/rpc-parse.test.mjs
 ```
 
-CI runs the same test on every push/PR to `main`.
+CI runs both on every push/PR to `main`.
 
 ## Git workflow
 
 - **`main`** = stable; feature branches (e.g. `phase-2`) merged via PR.
 - No long-lived `develop` branch.
-- Release: tag `v*` (e.g. `v1.0.0`) → GitHub Action builds `notebooklm-compactor.zip` and attaches to Release.
+- Release: tag `v*` (e.g. `v1.1.0`) → GitHub Action builds `notebooklm-compactor.zip` and attaches to Release.
 
-## Phase 2 checklist (next agent task)
+## Phase 3 checklist (next agent task)
 
-1. Add `addText`, `getNotebook`, `delete` actions to `background/source-api.js` per `docs/API.md`.
-2. Implement `waitForSourceReady()` (poll `rLM1Ne` until status `2`).
-3. Extend `content/compact-modal.js`: upload NBLC → poll READY → delete originals → clear storage.
-4. Remove or replace Phase 1 preview banner when upload path is live.
-5. Add tests where possible; manual test on notebooklm.google.com with 2–3 small sources.
+1. Add `content/decompact-modal.js`: fetch NBLC source → `parseNblc()` preview → confirm.
+2. Upload each section via `addText` → `waitForSourceReady` per source (or batched progress UI).
+3. Delete compacted source (`delete`) after all uploads succeed; clear storage on success.
+4. Inject **Decompact** button in `lib/source-panel-inject.js` for NBLC-titled sources (`isNblcTitle()`).
+5. Manual test: compact on one notebook, decompact on same or different machine (same Google account).
 
 ## Resolved from planning
 
@@ -60,5 +61,5 @@ CI runs the same test on every push/PR to `main`.
 ## Open questions (still valid)
 
 1. Exact NotebookLM source count limit (~50 assumed).
-2. Max pasted-text source size — test with 30+ long transcripts in Phase 2.
+2. Max pasted-text source size — stress-test with 30+ long transcripts (not yet verified at scale).
 3. Whether to extract `bl` from page HTML proactively (Phase 4).

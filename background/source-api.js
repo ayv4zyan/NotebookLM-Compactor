@@ -1,7 +1,26 @@
+import {
+  extractSourceId,
+  findSourceInNotebook,
+} from "./rpc-parse.js";
+
 const RPC_GET_CONTENT = "hizoJc";
+const RPC_ADD_SOURCE = "izAoDd";
+const RPC_DELETE = "tGMBJ";
+const RPC_GET_NOTEBOOK = "rLM1Ne";
 
 // Google frontend build label — may need updating if API calls start failing.
 const BL_VERSION = "boq_labs-tailwind-frontend_20260108.06_p0";
+
+const SOURCE_STATUS = {
+  PROCESSING: 1,
+  READY: 2,
+  ERROR: 3,
+  PREPARING: 5,
+};
+
+function buildTemplateBlock() {
+  return [2, null, null, [1, null, null, null, null, null, null, null, null, null, [1]]];
+}
 
 function buildBatchExecuteUrl(notebookId, rpcId) {
   const params = new URLSearchParams({
@@ -15,10 +34,35 @@ function buildBatchExecuteUrl(notebookId, rpcId) {
   return `https://notebooklm.google.com/_/LabsTailwindUi/data/batchexecute?${params.toString()}`;
 }
 
-function buildGetContentBody(sourceId, atToken) {
-  const inner = JSON.stringify([[sourceId], [2], [2]]);
-  const fReq = JSON.stringify([[[RPC_GET_CONTENT, inner, null, "generic"]]]);
+function buildFReqBody(rpcId, params, atToken) {
+  const inner = JSON.stringify(params);
+  const fReq = JSON.stringify([[[rpcId, inner, null, "generic"]]]);
   return `f.req=${encodeURIComponent(fReq)}&at=${encodeURIComponent(atToken)}&`;
+}
+
+function buildGetContentBody(sourceId, atToken) {
+  const params = [[sourceId], [2], [2]];
+  return buildFReqBody(RPC_GET_CONTENT, params, atToken);
+}
+
+function buildAddTextBody(title, content, notebookId, atToken) {
+  const params = [
+    [[null, [title, content], null, 2, null, null, null, null, null, null, 1]],
+    notebookId,
+    buildTemplateBlock(),
+  ];
+  return buildFReqBody(RPC_ADD_SOURCE, params, atToken);
+}
+
+function buildGetNotebookBody(notebookId, atToken) {
+  const params = [notebookId, null, buildTemplateBlock(), null, 0];
+  return buildFReqBody(RPC_GET_NOTEBOOK, params, atToken);
+}
+
+function buildDeleteBody(sourceIds, atToken) {
+  const nested = sourceIds.map((id) => [id]);
+  const params = [nested, [2]];
+  return buildFReqBody(RPC_DELETE, params, atToken);
 }
 
 function parseBatchExecuteResponse(text) {
@@ -31,6 +75,35 @@ function parseBatchExecuteResponse(text) {
     }
   }
   return null;
+}
+
+async function batchExecute({ notebookId, rpcId, body }) {
+  const url = buildBatchExecuteUrl(notebookId, rpcId);
+  const response = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
+      "X-Same-Domain": "1",
+    },
+    credentials: "include",
+    body,
+  });
+
+  if (!response.ok) {
+    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+  }
+
+  const text = await response.text();
+  const innerData = parseBatchExecuteResponse(text);
+  if (!innerData) {
+    throw new Error("Failed to parse API response");
+  }
+
+  return innerData;
+}
+
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 function parseFormattedText(nodes) {
@@ -146,49 +219,154 @@ function extractSourceContent(innerData) {
 }
 
 async function getSourceContent({ sourceId, notebookId, atToken }) {
-  const url = buildBatchExecuteUrl(notebookId, RPC_GET_CONTENT);
   const body = buildGetContentBody(sourceId, atToken);
-
-  const response = await fetch(url, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
-      "X-Same-Domain": "1",
-    },
-    credentials: "include",
+  const innerData = await batchExecute({
+    notebookId,
+    rpcId: RPC_GET_CONTENT,
     body,
   });
-
-  if (!response.ok) {
-    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-  }
-
-  const text = await response.text();
-  const innerData = parseBatchExecuteResponse(text);
-
-  if (!innerData) {
-    throw new Error("Failed to parse API response");
-  }
-
   return extractSourceContent(innerData);
 }
 
-export async function handleSourceApiMessage(message) {
-  const { action, sourceId, notebookId, atToken } = message.body || {};
+async function addTextSource({ title, content, notebookId, atToken }) {
+  const body = buildAddTextBody(title, content, notebookId, atToken);
+  const innerData = await batchExecute({
+    notebookId,
+    rpcId: RPC_ADD_SOURCE,
+    body,
+  });
 
-  if (action !== "getContent") {
-    return { success: false, error: `Unknown action: ${action}` };
+  const sourceId = extractSourceId(innerData);
+  if (!sourceId) {
+    throw new Error("Failed to parse new source ID from upload response");
   }
 
+  return { sourceId, title };
+}
+
+async function getNotebook({ notebookId, atToken }) {
+  const body = buildGetNotebookBody(notebookId, atToken);
+  return batchExecute({
+    notebookId,
+    rpcId: RPC_GET_NOTEBOOK,
+    body,
+  });
+}
+
+async function deleteSources({ sourceIds, notebookId, atToken }) {
+  if (!Array.isArray(sourceIds) || sourceIds.length === 0) {
+    throw new Error("delete requires at least one source ID");
+  }
+
+  const body = buildDeleteBody(sourceIds, atToken);
+  await batchExecute({
+    notebookId,
+    rpcId: RPC_DELETE,
+    body,
+  });
+
+  return { deletedCount: sourceIds.length };
+}
+
+async function waitForSourceReady({
+  notebookId,
+  sourceId,
+  atToken,
+  timeoutMs = 120000,
+  initialIntervalMs = 1000,
+  maxIntervalMs = 10000,
+}) {
+  const start = Date.now();
+  let intervalMs = initialIntervalMs;
+
+  while (Date.now() - start < timeoutMs) {
+    const notebook = await getNotebook({ notebookId, atToken });
+    const source = findSourceInNotebook(notebook, sourceId);
+
+    if (!source) {
+      throw new Error(`Uploaded source not found in notebook: ${sourceId}`);
+    }
+
+    if (source.status === SOURCE_STATUS.READY) {
+      return source;
+    }
+
+    if (source.status === SOURCE_STATUS.ERROR) {
+      throw new Error(
+        `Source processing failed: ${source.title || sourceId}`
+      );
+    }
+
+    await sleep(intervalMs);
+    intervalMs = Math.min(Math.round(intervalMs * 1.5), maxIntervalMs);
+  }
+
+  throw new Error(`Timeout waiting for source to become ready: ${sourceId}`);
+}
+
+export async function handleSourceApiMessage(message) {
+  const {
+    action,
+    sourceId,
+    sourceIds,
+    notebookId,
+    atToken,
+    title,
+    content,
+    timeoutMs,
+  } = message.body || {};
+
   try {
-    const { title, content, url } = await getSourceContent({
-      sourceId,
-      notebookId,
-      atToken,
-    });
-    return { success: true, title, content, url };
+    switch (action) {
+      case "getContent": {
+        const result = await getSourceContent({ sourceId, notebookId, atToken });
+        return { success: true, ...result };
+      }
+
+      case "addText": {
+        const result = await addTextSource({
+          title,
+          content,
+          notebookId,
+          atToken,
+        });
+        return { success: true, ...result };
+      }
+
+      case "getNotebook": {
+        const notebook = await getNotebook({ notebookId, atToken });
+        const source = sourceId ? findSourceInNotebook(notebook, sourceId) : null;
+        return {
+          success: true,
+          source: source || null,
+        };
+      }
+
+      case "waitForSourceReady": {
+        const source = await waitForSourceReady({
+          notebookId,
+          sourceId,
+          atToken,
+          timeoutMs,
+        });
+        return { success: true, source };
+      }
+
+      case "delete": {
+        const ids = sourceIds || (sourceId ? [sourceId] : []);
+        const result = await deleteSources({
+          sourceIds: ids,
+          notebookId,
+          atToken,
+        });
+        return { success: true, ...result };
+      }
+
+      default:
+        return { success: false, error: `Unknown action: ${action}` };
+    }
   } catch (error) {
-    console.error("[source-api] Failed to fetch source:", sourceId, error);
+    console.error(`[source-api] ${action} failed:`, error);
     return {
       success: false,
       error: error instanceof Error ? error.message : "Unknown error",

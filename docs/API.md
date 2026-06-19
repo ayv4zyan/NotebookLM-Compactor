@@ -76,7 +76,7 @@ function buildTemplateBlock() {
 
 ## RPC: GET_SOURCE — `hizoJc`
 
-**Implemented in:** `background/source-api.js` (Compactor Phase 1). Originally adapted from `../NotebookLM-Source-Downloader/background/source-api.js`.
+**Implemented in:** `background/source-api.js`. Originally adapted from `../NotebookLM-Source-Downloader/background/source-api.js`.
 
 Fetch full text content of a source. Used for compact (fetch originals) and decompact (fetch NBLC bundle). Compactor also returns `url` when present in API metadata or `Source:` line in content.
 
@@ -251,15 +251,16 @@ Store string names in NBLC meta (`youtube`, `web`, `pdf`, `text`, `gdoc`).
 
 | Action | RPC | Compactor | Notes |
 |--------|-----|-----------|-------|
-| `getContent` | `hizoJc` | ✅ Phase 1 | Also in Source-Downloader |
-| `delete` | `tGMBJ` | 📋 Phase 2 | Copy from Source-Downloader / Ultra Exporter; batch support |
-| `addText` | `izAoDd` | 📋 Phase 2 | Pasted text upload for compact + decompact restore |
-| `getNotebook` | `rLM1Ne` | 📋 Phase 2 | Poll source status until READY (2) |
+| `getContent` | `hizoJc` | ✅ | Also in Source-Downloader |
+| `addText` | `izAoDd` | ✅ | Pasted text upload; `buildTemplateBlock()` required |
+| `getNotebook` | `rLM1Ne` | ✅ | Source status lookup |
+| `waitForSourceReady` | `rLM1Ne` | ✅ | Poll until READY (2); exposed as message action |
+| `delete` | `tGMBJ` | ✅ | Batch delete; adapted from Ultra Exporter |
 | `addUrl` / `addYoutube` | `izAoDd` | 📋 Phase 4 | Different payload slot positions |
 | Extract `bl` from page | — | 📋 Phase 4 | Currently hardcoded `BL_VERSION` in source-api.js |
 
-### Phase 2 implementation notes
+### Compact flow notes (implemented)
 
 - Use `buildTemplateBlock()` on all `izAoDd` and `rLM1Ne` calls (required on Gemini-migrated accounts).
-- After `addText`, parse new `source_id` from response; poll `getNotebook` before deleting originals.
+- After `addText`, parse new `source_id` via `background/rpc-parse.js`; poll before deleting originals.
 - On upload failure: keep `chrome.storage` pending-compact entry; do **not** call `delete`.

@@ -16,5 +16,7 @@ jobs:
         with:
           node-version: "22"
 
-      - name: Run NBLC format tests
-        run: node test/nblc-format.test.js
+      - name: Run unit tests
+        run: |
+          node test/nblc-format.test.js
+          node test/rpc-parse.test.mjs

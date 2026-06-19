@@ -1,0 +1,68 @@
+/**
+ * Pure helpers for parsing NotebookLM batchexecute source payloads.
+ * Spec: docs/API.md, notebooklm-py SourceRow adapter.
+ */
+
+export function extractIdFromEnvelope(rawId) {
+  if (rawId == null) return null;
+  if (!Array.isArray(rawId)) return String(rawId);
+  if (rawId[0] != null) return String(rawId[0]);
+  if (Array.isArray(rawId[2]) && rawId[2][0] != null) return String(rawId[2][0]);
+  return null;
+}
+
+export function extractSourceId(data) {
+  if (!Array.isArray(data) || data.length === 0) return null;
+
+  const outer = data[0];
+  if (
+    Array.isArray(outer) &&
+    outer.length > 0 &&
+    Array.isArray(outer[0]) &&
+    outer[0].length > 0
+  ) {
+    const inner = outer[0];
+    if (Array.isArray(inner[0])) {
+      return extractIdFromEnvelope(inner[0]);
+    }
+    return extractIdFromEnvelope(outer[0]);
+  }
+
+  return extractIdFromEnvelope(data[0]);
+}
+
+export function extractIdFromEntry(entry) {
+  if (!Array.isArray(entry) || entry.length === 0) return null;
+  return extractIdFromEnvelope(entry[0]);
+}
+
+export function extractSourcesList(notebookData) {
+  if (!Array.isArray(notebookData)) return [];
+  const nbInfo = notebookData[0];
+  if (!Array.isArray(nbInfo) || nbInfo.length <= 1) return [];
+  const sourcesList = nbInfo[1];
+  return Array.isArray(sourcesList) ? sourcesList : [];
+}
+
+export function extractSourceStatus(entry) {
+  if (!Array.isArray(entry) || entry.length <= 3) return null;
+  const statusBlock = entry[3];
+  if (!Array.isArray(statusBlock) || statusBlock.length <= 1) return null;
+  const status = statusBlock[1];
+  return typeof status === "number" ? status : null;
+}
+
+export function findSourceInNotebook(notebookData, sourceId) {
+  const sources = extractSourcesList(notebookData);
+  for (const entry of sources) {
+    const id = extractIdFromEntry(entry);
+    if (id === sourceId) {
+      return {
+        id,
+        status: extractSourceStatus(entry),
+        title: typeof entry[1] === "string" ? entry[1] : null,
+      };
+    }
+  }
+  return null;
+}
