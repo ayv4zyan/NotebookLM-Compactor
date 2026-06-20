@@ -73,7 +73,7 @@ AMO review is **not** a gate for the GitHub tag. Tag first; submit after.
 1. Create or log in to the [Firefox Add-on Developer Hub](https://addons.mozilla.org/developers/).
 2. Create a new extension listing (or new version on existing listing).
 3. Upload `notebooklm-compactor.zip` from the `v1.1.0` GitHub Release — not the git working tree.
-4. Upload the **source code archive** (see [AMO source-code submission](#amo-source-code-submission) below).
+4. Upload the **source code archive** (see [AMO source-code submission](#4-amo-source-code-submission) below).
 5. Paste listing copy from [AMO_LISTING.md](./AMO_LISTING.md) (PR 3).
 6. Set privacy policy URL to `PRIVACY.md` on GitHub (same as Chrome Web Store).
 7. Submit for review; respond to reviewer questions (allow days–weeks).
