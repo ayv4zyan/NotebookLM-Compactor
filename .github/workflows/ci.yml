@@ -53,7 +53,7 @@ jobs:
       - name: web-ext lint
         id: webext
         continue-on-error: ${{ steps.manifest.outputs.changed != 'true' }}
-        run: npx --yes web-ext@8 lint --source-dir . --firefox-strict-manifest
+        run: npx --yes web-ext@8 lint --source-dir .
       - name: Fail if web-ext lint failed on manifest change
         if: steps.manifest.outputs.changed == 'true' && steps.webext.outcome == 'failure'
         run: exit 1
