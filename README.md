@@ -2,9 +2,7 @@
 
 Chrome and Firefox extension that merges many [NotebookLM](https://notebooklm.google.com) sources into one **NBLC** bundle to save **source count quota**, with full **decompact** restore on any machine.
 
-**Current manifest version:** `0.1.0` (public alpha) · **Latest GitHub tag:** `v0.1.0`
-
-> **Alpha:** Extension semver stays in `0.y.z` while features and NotebookLM integration may change. NBLC bundle format version (`version: 1` in file headers) is separate. Reserve `1.0.0` for a stable release.
+**Current manifest version:** `1.0.0` · **Latest GitHub tag:** `v1.0.0`
 
 ## What it does
 

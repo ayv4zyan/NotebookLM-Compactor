@@ -47,9 +47,9 @@ Run before tagging a release. Use a **throwaway or backup notebook** — Compact
 - [x] Source panel remains responsive (no freeze) after 30s on notebook page
 - [x] Buttons still inject after navigating between notebooks
 
-## Firefox (v0.1.0 gate)
+## Firefox (v1.0.0 gate)
 
-Completed for public alpha `v0.1.0`. Use a **throwaway notebook**. Build first: `node scripts/build-extension.mjs` → load `dist/firefox/manifest.json`.
+Completed for stable release `v1.0.0`. Use a **throwaway notebook**. Build first: `node scripts/build-extension.mjs` → load `dist/firefox/manifest.json`.
 
 ### Setup (Firefox-specific)
 
@@ -97,4 +97,4 @@ Completed for public alpha `v0.1.0`. Use a **throwaway notebook**. Build first: 
 
 | Version | Date | Tester | Browser | Pass |
 |---------|------|--------|---------|------|
-| v0.1.0 | 2026-06-20 | Artur | Chrome + Firefox | yes |
+| v1.0.0 | 2026-06-20 | Artur | Chrome + Firefox | yes |

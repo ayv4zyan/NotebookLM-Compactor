@@ -2,7 +2,7 @@
 
 Maintainer guide for dual-browser support (Chrome + Firefox). End-user install steps live in [FIREFOX.md](./FIREFOX.md).
 
-**Status (2026-06-20):** Migration **complete** on `main`. Dual-browser support shipped; manual QA signed off. Public alpha **`v0.1.0`** (manifest `0.1.0`, dual-browser GitHub Release zips). Git history was squashed before the first public release.
+**Status (2026-06-20):** Migration **complete** on `main`. Dual-browser support shipped; manual QA signed off. Stable release **`v1.0.0`** (manifest `1.0.0`, dual-browser GitHub Release zips). Git history was squashed before the first public release.
 
 ## Compatibility conclusion
 
@@ -75,7 +75,7 @@ Firefox dist manifest uses `background.scripts`; Chrome dist uses `background.se
 
 ### 1. Version bump and tag
 
-**Done:** `v0.1.0` (2026-06-20) — first public alpha. For the next release:
+**Done:** `v1.0.0` (2026-06-20) — first stable public release. For the next release:
 
 ```bash
 # Edit manifest.json version and COMPACTOR_ID in lib/nblc-format.js, then:
@@ -88,12 +88,12 @@ git push origin vX.Y.Z
 
 This triggers `.github/workflows/release.yml` → `notebooklm-compactor-chrome.zip` and `notebooklm-compactor-firefox.zip` on GitHub Releases.
 
-> **Versioning:** Extension semver uses `0.y.z` while in alpha. Reserve `1.0.0` for a stable, production-ready release. NBLC **format** version (`version: 1` in bundle headers) is separate and unchanged.
+> **Versioning:** NBLC **format** version (`version: 1` in bundle headers) is separate from extension semver in `manifest.json`.
 
 ### 2. Verify GitHub Release zips
 
-1. Download both zips from the `v0.1.0` GitHub Release.
-2. Confirm Firefox zip `manifest.json` has `browser_specific_settings.gecko`, `"version": "0.1.0"`, and `background.scripts` (not `service_worker`).
+1. Download both zips from the `v1.0.0` GitHub Release.
+2. Confirm Firefox zip `manifest.json` has `browser_specific_settings.gecko`, `"version": "1.0.0"`, and `background.scripts` (not `service_worker`).
 3. Confirm Chrome zip `manifest.json` has `background.service_worker` (not `background.scripts`).
 4. Load each in a clean profile; run minimal Compact + Decompact on a throwaway notebook.
 
@@ -103,7 +103,7 @@ AMO review is **not** a gate for the GitHub tag. Tag first; submit after.
 
 1. Create or log in to the [Firefox Add-on Developer Hub](https://addons.mozilla.org/developers/).
 2. Create a new extension listing (or new version on existing listing).
-3. Upload `notebooklm-compactor-firefox.zip` from the `v0.1.0` GitHub Release — not the git working tree.
+3. Upload `notebooklm-compactor-firefox.zip` from the `v1.0.0` GitHub Release — not the git working tree.
 4. Upload the **source code archive** (see [AMO source-code submission](#4-amo-source-code-submission) below).
 5. Paste listing copy from [AMO_LISTING.md](./AMO_LISTING.md).
 6. Set privacy policy URL to `PRIVACY.md` on GitHub (same as Chrome Web Store).
@@ -118,7 +118,7 @@ Required because `vendor/jszip.min.js` is minified third-party code.
 
 | Deliverable | Detail |
 |-------------|--------|
-| **Archive** | Full public repo zip at tag `v0.1.0` |
+| **Archive** | Full public repo zip at tag `v1.0.0` |
 | **Build instructions** | Reproduce release zips: |
 
 ```bash
@@ -136,7 +136,7 @@ Update [FIREFOX.md](./FIREFOX.md) with the live AMO listing URL (follow-up commi
 
 ### 6. Chrome Web Store (optional)
 
-Upload `notebooklm-compactor-chrome.zip` to Chrome Web Store for version parity (`v0.1.0`).
+Upload `notebooklm-compactor-chrome.zip` to Chrome Web Store for version parity (`v1.0.0`).
 
 ## Rollback
 

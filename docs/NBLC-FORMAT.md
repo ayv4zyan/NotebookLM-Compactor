@@ -45,7 +45,7 @@ version: 1
 created: 2026-06-19T14:30:00Z
 notebook: optional-notebook-slug-or-id
 source_count: 33
-compactor: NotebookLM-Compactor/0.1.0
+compactor: NotebookLM-Compactor/1.0.0
 ---END-BUNDLE---
 
 # NotebookLM Compactor Bundle

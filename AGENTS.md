@@ -14,7 +14,7 @@ Quick entry point for AI coding agents. **Full design lives in [CONTEXT.md](./CO
 | **4** | ✅ Done | Smart URL/YouTube restore; dynamic `bl` extraction; YouTube URL capture fix |
 | **5** | ✅ Done | Public-ready docs, consent gates, destructive confirmations, `SECURITY.md` |
 
-**Extension version:** `0.1.0` (public alpha) · **Latest tag:** `v0.1.0` · **GitHub:** `ayv4zyan/NotebookLM-Compactor`
+**Extension version:** `1.0.0` (manifest) · **Latest tag:** `v1.0.0` · **GitHub:** `ayv4zyan/NotebookLM-Compactor`
 
 ## Before you code
 
@@ -51,7 +51,7 @@ CI runs build + all four tests on every push/PR to `main`.
 
 - **`main`** = stable; feature branches (e.g. `phase-2`) merged via PR.
 - No long-lived `develop` branch.
-- Release: tag `v*` (e.g. `v0.1.0`) → GitHub Action builds `notebooklm-compactor-chrome.zip` and `notebooklm-compactor-firefox.zip` and attaches to Release.
+- Release: tag `v*` (e.g. `v1.0.0`) → GitHub Action builds `notebooklm-compactor-chrome.zip` and `notebooklm-compactor-firefox.zip` and attaches to Release.
 - Pre-release: run [docs/MANUAL_TEST_CHECKLIST.md](./docs/MANUAL_TEST_CHECKLIST.md).
 
 ## Phase 4 checklist (complete)

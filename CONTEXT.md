@@ -2,7 +2,7 @@
 
 **Read this file first.** It captures the full design, API knowledge, and decisions from the planning session.
 
-**Implementation status (2026-06-20):** Phases 1–5 complete. Chrome + Firefox dual-browser support on `main`. Public alpha **`v0.1.0`** (dual-browser zips + per-account source limit in Compact UI). Manual QA signed off in [docs/MANUAL_TEST_CHECKLIST.md](./docs/MANUAL_TEST_CHECKLIST.md). See [AGENTS.md](./AGENTS.md) for a short agent entry point.
+**Implementation status (2026-06-20):** Phases 1–5 complete. Chrome + Firefox dual-browser support on `main`. Stable release **`v1.0.0`** (dual-browser zips + per-account source limit in Compact UI). Manual QA signed off in [docs/MANUAL_TEST_CHECKLIST.md](./docs/MANUAL_TEST_CHECKLIST.md). See [AGENTS.md](./AGENTS.md) for a short agent entry point.
 
 ## Project goal
 
@@ -196,7 +196,7 @@ NotebookLM-Compactor/
   AGENTS.md                  ← short agent entry (status, conventions)
   CONTEXT.md                 ← this file (full design)
   README.md
-  manifest.json              ✅ v0.1.0 (Chrome-canonical; Firefox uses dist/firefox)
+  manifest.json              ✅ v1.0.0 (Chrome-canonical; Firefox uses dist/firefox)
   LICENSE TERMS.md PRIVACY.md SECURITY.md
   .github/workflows/         ✅ ci.yml (build + tests + web-ext lint), release.yml (two zips on v* tag)
   scripts/
@@ -290,11 +290,11 @@ NotebookLM Compactor/              # parent workspace (not a git repo)
   NotebookLM-Ultra-Exporter.crx    # original reverse-engineering source
   extracted/                       # unpacked CRX (reference only)
   NotebookLM-Source-Downloader/    # ✅ working download extension (sibling)
-  NotebookLM-Compactor/            # ✅ this extension — git repo, manifest `0.1.0`, dual-browser on main
+  NotebookLM-Compactor/            # ✅ this extension — git repo, manifest `1.0.0`, dual-browser on main
 ```
 
 ---
 
 ## Next steps for agent
 
-Dual-browser code, manual QA, and public alpha `v0.1.0` are complete on `main`. Remaining maintainer actions: make repo public, submit AMO + optional Chrome Web Store ([docs/FIREFOX_MIGRATION.md](./docs/FIREFOX_MIGRATION.md)). Open research: stress-test 30+ long transcripts at scale.
+Dual-browser code, manual QA, and stable release `v1.0.0` are complete on `main`. Remaining maintainer actions: make repo public, submit AMO + optional Chrome Web Store ([docs/FIREFOX_MIGRATION.md](./docs/FIREFOX_MIGRATION.md)). Open research: stress-test 30+ long transcripts at scale.

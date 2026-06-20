@@ -1,6 +1,6 @@
 # Chrome Web Store listing
 
-Draft copy and submission notes for `v0.1.0+`. Requires a **public** GitHub repo so privacy policy and support URLs are reachable.
+Draft copy and submission notes for `v1.0.0+`. Requires a **public** GitHub repo so privacy policy and support URLs are reachable.
 
 ## URLs
 
@@ -76,7 +76,7 @@ Recommended size: 1280×800 or 640×400. No Google trademarks presented as if en
 ## Developer checklist
 
 - [ ] $5 Chrome Web Store developer account registered
-- [ ] Upload `notebooklm-compactor-chrome.zip` from GitHub Release `v0.1.0` or later (not the git repo folder)
+- [ ] Upload `notebooklm-compactor-chrome.zip` from GitHub Release `v1.0.0` or later (not the git repo folder)
 - [ ] Privacy policy URL reachable
 - [ ] Screenshots attached
 - [ ] Test install from submitted package in a clean Chrome profile

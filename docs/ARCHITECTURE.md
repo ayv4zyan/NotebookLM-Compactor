@@ -1,6 +1,6 @@
 # Architecture
 
-**Implementation status:** Phases 1–5 complete. Dual-browser support on `main` (manifest `0.1.0`, tag `v0.1.0`). See [AGENTS.md](../AGENTS.md).
+**Implementation status:** Phases 1–5 complete. Dual-browser support on `main` (manifest `1.0.0`, tag `v1.0.0`). See [AGENTS.md](../AGENTS.md).
 
 ## Browser compatibility
 
@@ -12,7 +12,7 @@ NotebookLM Compactor targets **Chrome/Chromium** and **Firefox ≥ 128** from a 
 | **Manifest** | Chrome: MV3 `background.service_worker`. Firefox: MV3 `background.scripts` (event page). Built by `scripts/build-extension.mjs` → `dist/chrome` / `dist/firefox`. Gecko block in base manifest. |
 | **API transport** | `batchexecute` runs in the content script via `lib/runtime-messaging.js` + `content/batchexecute-bridge.js` (session cookies). Background worker handles storage sweep and message fallback. |
 | **NBLC portability** | Cross-browser and cross-machine — restore metadata lives in uploaded markdown, not extension storage |
-| **Firefox QA** | Passed — sign-off in [MANUAL_TEST_CHECKLIST.md](./MANUAL_TEST_CHECKLIST.md) (2026-06-20). Public alpha `v0.1.0` tagged. |
+| **Firefox QA** | Passed — sign-off in [MANUAL_TEST_CHECKLIST.md](./MANUAL_TEST_CHECKLIST.md) (2026-06-20). Stable release `v1.0.0` tagged. |
 
 User install paths: [FIREFOX.md](./FIREFOX.md) (Firefox), [README.md](../README.md#install) (Chrome).
 
