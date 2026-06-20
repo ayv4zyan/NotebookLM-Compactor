@@ -1,6 +1,6 @@
 # Terms of Use — NotebookLM Compactor
 
-**Last updated:** 2026-06-19
+**Last updated:** 2026-06-20
 
 These Terms of Use ("Terms") govern your use of the NotebookLM Compactor browser extension and related open-source materials in this repository (collectively, the "Extension").
 
@@ -63,7 +63,11 @@ You agree to indemnify and hold harmless the authors and copyright holders from 
 
 We may update these Terms by posting a revised version in this repository. Continued use after changes become effective constitutes acceptance of the updated Terms.
 
-## 10. Contact
+## 10. Trademarks
+
+NotebookLM and Google are trademarks of Google LLC. This Extension is independent and is not affiliated with, endorsed, or sponsored by Google.
+
+## 11. Contact
 
 For questions about these Terms, open an issue at:
 

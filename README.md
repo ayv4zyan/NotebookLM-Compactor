@@ -83,6 +83,8 @@ Full policy: [PRIVACY.md](./PRIVACY.md) · Technical detail: [docs/ARCHITECTURE.
 
 This software is provided as-is. Using it with NotebookLM may conflict with Google’s service terms; you choose whether to accept that risk on your own account.
 
+NotebookLM and Google are trademarks of Google LLC. This extension is independent and is not affiliated with, endorsed, or sponsored by Google.
+
 ---
 
 ## Development

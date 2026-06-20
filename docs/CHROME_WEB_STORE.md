@@ -37,6 +37,8 @@ NotebookLM Compactor helps you stay under NotebookLM's per-notebook source count
 
 **Not affiliated with Google.** Uses your existing NotebookLM login on `notebooklm.google.com`. Features may break if NotebookLM changes.
 
+NotebookLM and Google are trademarks of Google LLC. This extension is independent and is not affiliated with, endorsed, or sponsored by Google.
+
 ### Category
 
 `Productivity`
