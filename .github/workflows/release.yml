@@ -1,0 +1,35 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Build browser-specific extension trees
+        run: node scripts/build-extension.mjs
+
+      - name: Build extension zips
+        run: |
+          (cd dist/chrome && zip -r ../../notebooklm-compactor-chrome.zip .)
+          (cd dist/firefox && zip -r ../../notebooklm-compactor-firefox.zip .)
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            notebooklm-compactor-chrome.zip
+            notebooklm-compactor-firefox.zip
+          generate_release_notes: true

@@ -1,0 +1,72 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Build browser-specific extension trees
+        run: node scripts/build-extension.mjs
+
+      - name: Run unit tests
+        run: |
+          node test/nblc-format.test.js
+          node test/rpc-parse.test.mjs
+          node test/source-api.test.mjs
+          node test/batchexecute-parse.test.mjs
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Detect manifest.json changes
+        id: manifest
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            BASE="${{ github.event.pull_request.base.sha }}"
+            if git diff --name-only "${BASE}"...HEAD | grep -qx 'manifest.json'; then
+              echo "changed=true" >> "$GITHUB_OUTPUT"
+            else
+              echo "changed=false" >> "$GITHUB_OUTPUT"
+            fi
+          else
+            BEFORE="${{ github.event.before }}"
+            if [ -n "${BEFORE}" ] && git diff --name-only "${BEFORE}" "${{ github.sha }}" | grep -qx 'manifest.json'; then
+              echo "changed=true" >> "$GITHUB_OUTPUT"
+            else
+              echo "changed=false" >> "$GITHUB_OUTPUT"
+            fi
+          fi
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Build browser-specific extension trees
+        run: node scripts/build-extension.mjs
+
+      - name: Validate Chrome and Firefox manifests
+        run: |
+          python -c "import json; json.load(open('manifest.json'))"
+          python -c "import json; m=json.load(open('dist/chrome/manifest.json')); assert 'service_worker' in m['background']"
+          python -c "import json; m=json.load(open('dist/firefox/manifest.json')); assert 'scripts' in m['background']"
+          jq -e '.browser_specific_settings.gecko.id' dist/firefox/manifest.json
+      - name: web-ext lint (Firefox dist)
+        id: webext
+        continue-on-error: ${{ steps.manifest.outputs.changed != 'true' }}
+        run: npx --yes web-ext@8 lint --source-dir dist/firefox
+      - name: Fail if web-ext lint failed on manifest change
+        if: steps.manifest.outputs.changed == 'true' && steps.webext.outcome == 'failure'
+        run: exit 1
