@@ -1,5 +1,6 @@
 (function () {
-  const { api, format, store, modalA11y } = window.NBLC;
+  const { api, format, store, modalA11y, runtimeMessaging } = window.NBLC;
+  const { isCheckboxActionElement, setModalVisible } = modalA11y;
 
   const NOTEBOOK_SOURCE_LIMIT = 50;
   const LARGE_BUNDLE_BYTES = 5 * 1024 * 1024;
@@ -66,7 +67,7 @@
   }
 
   function sendSourceApi(body) {
-    return chrome.runtime.sendMessage({ type: "source-api", body });
+    return runtimeMessaging.sendSourceApi(body);
   }
 
   function notifyRecoveryRefresh() {
@@ -763,6 +764,7 @@
   }
 
   function resetPreviewState() {
+    previewLoadGen++;
     previewState = {
       status: "idle",
       fetchKey: "",
@@ -901,7 +903,7 @@
 
   function goToPreview() {
     phase = PHASE.PREVIEW;
-    render();
+    scheduleRender();
     loadPreviewData();
   }
 
@@ -931,7 +933,7 @@
           <br><br>${titles}
         </p>
       </div>
-      <button class="nblc-secondary-btn nblc-back-summary-btn" data-action="deselect-nblc">
+      <button type="button" class="nblc-secondary-btn nblc-back-summary-btn" data-action="deselect-nblc">
         Remove NBLC bundles from selection
       </button>
     `;
@@ -951,8 +953,9 @@
       </label>
 
       <div class="nblc-action-row">
-        <button class="nblc-secondary-btn" data-action="edit-selection">Edit selection</button>
+        <button type="button" class="nblc-secondary-btn" data-action="edit-selection">Edit selection</button>
         <button
+          type="button"
           class="nblc-primary-btn"
           data-action="continue"
           ${continueDisabled || blocked || count === 0 ? "disabled" : ""}
@@ -1017,8 +1020,8 @@
           <p class="nblc-error-detail">${escapeHtml(previewState.errorMessage)}</p>
         </div>
         <div class="nblc-action-row">
-          <button class="nblc-secondary-btn" data-action="edit-selection">Edit selection</button>
-          <button class="nblc-primary-btn" data-action="retry-preview">Try Again</button>
+          <button type="button" class="nblc-secondary-btn" data-action="edit-selection">Edit selection</button>
+          <button type="button" class="nblc-primary-btn" data-action="retry-preview">Try Again</button>
         </div>
       `;
     }
@@ -1143,8 +1146,9 @@
       </label>
 
       <div class="nblc-action-row">
-        <button class="nblc-secondary-btn" data-action="back">Back</button>
+        <button type="button" class="nblc-secondary-btn" data-action="back">Back</button>
         <button
+          type="button"
           class="nblc-primary-btn"
           data-action="proceed-compact"
           ${canProceedWithCompact() && !hasNblcInSelection() ? "" : "disabled"}
@@ -1172,7 +1176,7 @@
   function renderIdleBody(filtered, allSelected) {
     const backToPreview =
       selectedIds.size > 0
-        ? `<button class="nblc-secondary-btn nblc-back-summary-btn" data-action="back-to-preview">← Back to summary</button>`
+        ? `<button type="button" class="nblc-secondary-btn nblc-back-summary-btn" data-action="back-to-preview">← Back to summary</button>`
         : "";
 
     return `
@@ -1238,6 +1242,7 @@
       </label>
 
       <button
+        type="button"
         class="nblc-primary-btn"
         data-action="compact"
         ${selectedIds.size === 0 || hasNblcInSelection() ? "disabled" : ""}
@@ -1276,11 +1281,11 @@
       </div>
 
       <div class="nblc-action-row">
-        <button class="nblc-secondary-btn" data-action="download-nblc">Download NBLC (.md)</button>
-        <button class="nblc-secondary-btn" data-action="download-zip">Download backup zip</button>
+        <button type="button" class="nblc-secondary-btn" data-action="download-nblc">Download NBLC (.md)</button>
+        <button type="button" class="nblc-secondary-btn" data-action="download-zip">Download backup zip</button>
       </div>
 
-      <button class="nblc-primary-btn" data-action="close">Done</button>
+      <button type="button" class="nblc-primary-btn" data-action="close">Done</button>
     `;
   }
 
@@ -1291,7 +1296,7 @@
         <p class="nblc-error-detail">${escapeHtml(errorMessage)}</p>
         <p class="nblc-error-note">Any fetched data is kept in extension storage for retry.</p>
       </div>
-      <button class="nblc-primary-btn" data-action="retry">Try Again</button>
+      <button type="button" class="nblc-primary-btn" data-action="retry">Try Again</button>
     `;
   }
 
@@ -1319,24 +1324,15 @@
       body = renderIdleBody(filtered, allSelected);
     }
 
-    overlay.innerHTML = `
-      <div class="nblc-overlay" data-action="close-overlay">
-        <div class="nblc-modal" role="dialog" aria-label="Compact Sources">
-          <div class="nblc-modal-header">
-            <div class="nblc-modal-title-row">
-              <span class="nblc-modal-icon">📦</span>
-              <h3>Compact Sources</h3>
-            </div>
-            <button class="nblc-close-btn" data-action="close" aria-label="Close" ${isBusy() ? "disabled" : ""}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M18 6L6 18M6 6l12 12"/>
-              </svg>
-            </button>
-          </div>
-          <div class="nblc-modal-body">${body}</div>
-        </div>
-      </div>
-    `;
+    const bodyEl = overlay.querySelector(".nblc-modal-body");
+    const closeBtn = overlay.querySelector(".nblc-close-btn");
+    if (!bodyEl) return;
+
+    bodyEl.innerHTML = body;
+
+    if (closeBtn) {
+      closeBtn.disabled = isBusy();
+    }
 
     a11y?.afterRender();
   }
@@ -1346,14 +1342,73 @@
 
     overlay = document.createElement("div");
     overlay.id = "nblc-compact-modal-root";
-    overlay.addEventListener("click", handleClick);
+    overlay.hidden = true;
+    overlay.dataset.nblcOpen = "false";
+    overlay.innerHTML = `
+      <div class="nblc-overlay">
+        <div class="nblc-modal" role="dialog" aria-label="Compact Sources">
+          <div class="nblc-modal-header">
+            <div class="nblc-modal-title-row">
+              <span class="nblc-modal-icon">📦</span>
+              <h3>Compact Sources</h3>
+            </div>
+            <button type="button" class="nblc-close-btn" data-action="close" aria-label="Close">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M18 6L6 18M6 6l12 12"/>
+              </svg>
+            </button>
+          </div>
+          <div class="nblc-modal-body"></div>
+        </div>
+      </div>
+    `;
+    overlay.addEventListener("click", handleClick, true);
+    overlay.addEventListener("change", handleChange);
     overlay.addEventListener("input", handleInput);
     document.body.appendChild(overlay);
+    setModalVisible(overlay, false);
 
     a11y = modalA11y.attachModalA11y(overlay, () => ({
       isBusy,
       onClose: close,
     }));
+  }
+
+  function resolveActionTarget(event) {
+    const direct = event.target.closest("[data-action]");
+    if (direct) return direct;
+
+    const label = event.target.closest("label");
+    if (label) {
+      return label.querySelector("[data-action]");
+    }
+
+    return null;
+  }
+
+  function setSourceSelected(id, checked) {
+    if (isBusy()) return;
+
+    const source = allSources.find((s) => s.id === id);
+    if (source?.isNblc) return;
+
+    const next = new Set(selectedIds);
+    if (checked) next.add(id);
+    else next.delete(id);
+    selectedIds = next;
+    render();
+  }
+
+  function setSelectAll(filtered, checked) {
+    if (isBusy()) return;
+
+    const compactable = getCompactableSources(filtered);
+    if (checked) {
+      selectedIds = new Set(compactable.map((s) => s.id));
+    } else {
+      selectedIds = new Set();
+    }
+    render();
   }
 
   function escapeHtml(text) {
@@ -1364,28 +1419,19 @@
       .replace(/"/g, "&quot;");
   }
 
-  function handleClick(event) {
-    const target = event.target.closest("[data-action]");
-    if (!target) return;
+  function handleChange(event) {
+    const target = event.target;
+    if (!(target instanceof HTMLInputElement) || target.type !== "checkbox") return;
 
     const action = target.dataset.action;
-
-    if (action === "close-overlay" && event.target.classList.contains("nblc-overlay")) {
-      if (!isBusy()) close();
-      return;
-    }
-
-    event.stopPropagation();
+    if (!action) return;
 
     switch (action) {
-      case "close":
-        if (!isBusy()) close();
-        break;
       case "toggle-source":
-        toggleSource(target.dataset.id);
+        setSourceSelected(target.dataset.id, target.checked);
         break;
       case "toggle-all":
-        toggleSelectAll(getFilteredSources());
+        setSelectAll(getFilteredSources(), target.checked);
         break;
       case "toggle-backup-zip":
         downloadBackupZip = target.checked;
@@ -1398,13 +1444,37 @@
         ackDataLossRisk = target.checked;
         render();
         break;
+    }
+  }
+
+  function scheduleRender() {
+    requestAnimationFrame(() => render());
+  }
+
+  function handleClick(event) {
+    event.stopPropagation();
+
+    const target = resolveActionTarget(event);
+    if (!target) return;
+
+    const action = target.dataset.action;
+    if (target.disabled) return;
+
+    if (isCheckboxActionElement(target)) return;
+
+    event.preventDefault();
+
+    switch (action) {
+      case "close":
+        if (!isBusy()) close();
+        break;
       case "back":
         if (!isBusy()) {
           pendingResume = null;
           if (selectedIds.size > 0) goToPreview();
           else {
             phase = PHASE.IDLE;
-            render();
+            scheduleRender();
           }
         }
         break;
@@ -1413,12 +1483,12 @@
         phase = PHASE.CONFIRM;
         ackPermanentDelete = false;
         ackDataLossRisk = false;
-        render();
+        scheduleRender();
         break;
       case "edit-selection":
         if (!isBusy()) {
           phase = PHASE.IDLE;
-          render();
+          scheduleRender();
         }
         break;
       case "back-to-preview":
@@ -1433,7 +1503,7 @@
       case "deselect-nblc":
         if (!isBusy() && stripNblcFromSelection() > 0) {
           if (phase === PHASE.PREVIEW) goToPreview();
-          else render();
+          else scheduleRender();
         }
         break;
       case "compact":
@@ -1441,7 +1511,7 @@
         phase = PHASE.CONFIRM;
         ackPermanentDelete = false;
         ackDataLossRisk = false;
-        render();
+        scheduleRender();
         break;
       case "proceed-compact":
         if (!canProceedWithCompact() || isBusy()) break;
@@ -1459,11 +1529,11 @@
         progress = { current: 0, total: 0, status: "" };
         if (pendingResume) {
           phase = PHASE.CONFIRM;
-          render();
+          scheduleRender();
         } else if (selectedIds.size > 0) goToPreview();
         else {
           phase = PHASE.IDLE;
-          render();
+          scheduleRender();
         }
         break;
     }
@@ -1481,7 +1551,15 @@
     }
   }
 
+  function hide() {
+    a11y?.onClose();
+    setModalVisible(overlay, false);
+    notifyRecoveryRefresh();
+  }
+
   function open(initialIds = null) {
+    window.NBLC.consentModal?.hide?.();
+    window.NBLC.decompactModal?.hide?.();
     pendingResume = null;
     allSources = api.extractSourcesFromDOM();
     filterText = "";
@@ -1506,8 +1584,9 @@
     ensureOverlay();
 
     render();
-    overlay.style.display = "block";
+    setModalVisible(overlay, true);
     a11y.onOpen();
+    notifyRecoveryRefresh();
 
     if (phase === PHASE.PREVIEW) {
       loadPreviewData();
@@ -1516,8 +1595,9 @@
 
   function close() {
     if (isBusy()) return;
-    a11y?.onClose();
-    if (overlay) overlay.style.display = "none";
+    setModalVisible(overlay, false);
+    a11y?.onClose({ restoreFocus: false });
+    phase = PHASE.IDLE;
     pendingResume = null;
     notifyRecoveryRefresh();
   }
@@ -1525,6 +1605,8 @@
   function openResume(pending) {
     if (!pending?.sourceIds?.length) return;
 
+    window.NBLC.consentModal?.hide?.();
+    window.NBLC.decompactModal?.hide?.();
     allSources = api.extractSourcesFromDOM();
     filterText = "";
     downloadBackupZip = false;
@@ -1543,9 +1625,10 @@
     ensureOverlay();
 
     render();
-    overlay.style.display = "block";
+    setModalVisible(overlay, true);
     a11y.onOpen();
+    notifyRecoveryRefresh();
   }
 
-  window.NBLC.compactModal = { open, close, openResume };
+  window.NBLC.compactModal = { open, close, hide, openResume };
 })();

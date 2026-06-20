@@ -75,7 +75,7 @@ Recommended size: 1280×800 or 640×400. No Google trademarks presented as if en
 ## Developer checklist
 
 - [ ] [Firefox Add-on Developer Hub](https://addons.mozilla.org/developers/) account created
-- [ ] Upload `notebooklm-compactor.zip` from GitHub Release `v1.1.0` (not the git repo folder)
+- [ ] Upload `notebooklm-compactor-firefox.zip` from GitHub Release `v1.1.0` (not the git repo folder)
 - [ ] Upload source code archive (see [Source code submission](#source-code-submission) below)
 - [ ] Privacy policy URL reachable
 - [ ] Screenshots attached (Firefox captures)

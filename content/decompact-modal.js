@@ -1,5 +1,6 @@
 (function () {
-  const { api, format, store, modalA11y } = window.NBLC;
+  const { api, format, store, modalA11y, runtimeMessaging } = window.NBLC;
+  const { isCheckboxActionElement, setModalVisible } = modalA11y;
 
   const PHASE = {
     EMPTY: "empty",
@@ -32,7 +33,7 @@
   let emptyStateReason = "no-selection";
 
   function sendSourceApi(body) {
-    return chrome.runtime.sendMessage({ type: "source-api", body });
+    return runtimeMessaging.sendSourceApi(body);
   }
 
   function notifyRecoveryRefresh() {
@@ -322,6 +323,7 @@
       </label>
 
       <button
+        type="button"
         class="nblc-primary-btn"
         data-action="decompact"
         ${canProceedWithDecompact() ? "" : "disabled"}
@@ -362,7 +364,7 @@
           The compacted source was deleted. Original titles and content are back in your notebook.
         </p>
       </div>
-      <button class="nblc-primary-btn" data-action="close">Done</button>
+      <button type="button" class="nblc-primary-btn" data-action="close">Done</button>
     `;
   }
 
@@ -379,7 +381,7 @@
         ${partialNote}
         <p class="nblc-error-note">If upload had started, click Try Again to resume from the next source (bundle is re-read from NotebookLM).</p>
       </div>
-      <button class="nblc-primary-btn" data-action="retry">Try Again</button>
+      <button type="button" class="nblc-primary-btn" data-action="retry">Try Again</button>
     `;
   }
 
@@ -425,7 +427,7 @@
 
       ${renderNblcBundleList()}
 
-      <button class="nblc-primary-btn" data-action="close">Close</button>
+      <button type="button" class="nblc-primary-btn" data-action="close">Close</button>
     `;
   }
 
@@ -445,24 +447,15 @@
       body = renderProgressBody();
     }
 
-    overlay.innerHTML = `
-      <div class="nblc-overlay" data-action="close-overlay">
-        <div class="nblc-modal" role="dialog" aria-label="Decompact Sources">
-          <div class="nblc-modal-header">
-            <div class="nblc-modal-title-row">
-              <span class="nblc-modal-icon">📂</span>
-              <h3>Decompact Sources</h3>
-            </div>
-            <button class="nblc-close-btn" data-action="close" aria-label="Close" ${isBusy() ? "disabled" : ""}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M18 6L6 18M6 6l12 12"/>
-              </svg>
-            </button>
-          </div>
-          <div class="nblc-modal-body">${body}</div>
-        </div>
-      </div>
-    `;
+    const bodyEl = overlay.querySelector(".nblc-modal-body");
+    const closeBtn = overlay.querySelector(".nblc-close-btn");
+    if (!bodyEl) return;
+
+    bodyEl.innerHTML = body;
+
+    if (closeBtn) {
+      closeBtn.disabled = isBusy();
+    }
 
     a11y?.afterRender();
   }
@@ -472,8 +465,30 @@
 
     overlay = document.createElement("div");
     overlay.id = "nblc-decompact-modal-root";
-    overlay.addEventListener("click", handleClick);
+    overlay.hidden = true;
+    overlay.dataset.nblcOpen = "false";
+    overlay.innerHTML = `
+      <div class="nblc-overlay">
+        <div class="nblc-modal" role="dialog" aria-label="Decompact Sources">
+          <div class="nblc-modal-header">
+            <div class="nblc-modal-title-row">
+              <span class="nblc-modal-icon">📂</span>
+              <h3>Decompact Sources</h3>
+            </div>
+            <button type="button" class="nblc-close-btn" data-action="close" aria-label="Close">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M18 6L6 18M6 6l12 12"/>
+              </svg>
+            </button>
+          </div>
+          <div class="nblc-modal-body"></div>
+        </div>
+      </div>
+    `;
+    overlay.addEventListener("click", handleClick, true);
+    overlay.addEventListener("change", handleChange);
     document.body.appendChild(overlay);
+    setModalVisible(overlay, false);
 
     a11y = modalA11y.attachModalA11y(overlay, () => ({
       isBusy,
@@ -489,23 +504,14 @@
       .replace(/"/g, "&quot;");
   }
 
-  function handleClick(event) {
-    const target = event.target.closest("[data-action]");
-    if (!target) return;
+  function handleChange(event) {
+    const target = event.target;
+    if (!(target instanceof HTMLInputElement) || target.type !== "checkbox") return;
 
     const action = target.dataset.action;
-
-    if (action === "close-overlay" && event.target.classList.contains("nblc-overlay")) {
-      if (!isBusy()) close();
-      return;
-    }
-
-    event.stopPropagation();
+    if (!action) return;
 
     switch (action) {
-      case "close":
-        if (!isBusy()) close();
-        break;
       case "toggle-ack-delete-compacted":
         ackDeleteCompacted = target.checked;
         render();
@@ -513,6 +519,26 @@
       case "toggle-ack-risk":
         ackDataLossRisk = target.checked;
         render();
+        break;
+    }
+  }
+
+  function handleClick(event) {
+    event.stopPropagation();
+
+    const target = event.target.closest("[data-action]");
+    if (!target) return;
+
+    const action = target.dataset.action;
+    if (target.disabled) return;
+
+    if (isCheckboxActionElement(target)) return;
+
+    event.preventDefault();
+
+    switch (action) {
+      case "close":
+        if (!isBusy()) close();
         break;
       case "decompact":
         if (!canProceedWithDecompact()) break;
@@ -532,7 +558,14 @@
     }
   }
 
+  function hide() {
+    setModalVisible(overlay, false);
+    a11y?.onClose({ restoreFocus: false });
+    notifyRecoveryRefresh();
+  }
+
   async function open(sourceIdOrOptions, title = "") {
+    window.NBLC.consentModal?.hide?.();
     let sourceId = null;
     let emptyReason = null;
 
@@ -555,8 +588,9 @@
     emptyStateReason = emptyReason || "no-selection";
 
     ensureOverlay();
-    overlay.style.display = "block";
+    setModalVisible(overlay, true);
     a11y.onOpen();
+    notifyRecoveryRefresh();
 
     if (!sourceId || emptyReason) {
       phase = PHASE.EMPTY;
@@ -612,10 +646,10 @@
 
   function close() {
     if (isBusy()) return;
-    a11y?.onClose();
-    if (overlay) overlay.style.display = "none";
+    setModalVisible(overlay, false);
+    a11y?.onClose({ restoreFocus: false });
     notifyRecoveryRefresh();
   }
 
-  window.NBLC.decompactModal = { open, close };
+  window.NBLC.decompactModal = { open, close, hide };
 })();

@@ -3,10 +3,56 @@
     window.NBLC;
 
   let observer = null;
+  let compactOpening = false;
+  let decompactOpening = false;
+
+  async function openCompact(detail = {}) {
+    if (compactOpening) return;
+    compactOpening = true;
+
+    try {
+      const accepted = await consentModal.ensureAccepted();
+      if (!accepted) return;
+
+      if (!compactModal?.open) {
+        console.error("[NBLC] Compact modal is unavailable — reload the extension.");
+        return;
+      }
+
+      compactModal.open(detail.sourceIds || null);
+    } catch (error) {
+      console.error("[NBLC] Failed to open compact modal:", error);
+    } finally {
+      compactOpening = false;
+    }
+  }
+
+  async function openDecompact(detail = {}) {
+    if (decompactOpening) return;
+    decompactOpening = true;
+
+    try {
+      const accepted = await consentModal.ensureAccepted();
+      if (!accepted) return;
+
+      decompactModal.open({
+        sourceId: detail.sourceId || null,
+        title: detail.title || "",
+        emptyReason: detail.emptyReason || null,
+      });
+    } catch (error) {
+      console.error("[NBLC] Failed to open decompact modal:", error);
+    } finally {
+      decompactOpening = false;
+    }
+  }
 
   function init() {
     if (observer) observer.disconnect();
     observer = inject.initSourcePanelObserver();
+
+    window.NBLC.openCompact = openCompact;
+    window.NBLC.openDecompact = openDecompact;
 
     store
       .migrateFatPendingEntries()
@@ -18,23 +64,12 @@
 
     recoveryBanner?.initRecoveryBanner();
 
-    window.addEventListener("nblc-compact", async (event) => {
-      const accepted = await consentModal.ensureAccepted();
-      if (!accepted) return;
-
-      const sourceIds = event.detail?.sourceIds || null;
-      compactModal.open(sourceIds);
+    window.addEventListener("nblc-compact", (event) => {
+      openCompact(event.detail || {});
     });
 
-    window.addEventListener("nblc-decompact", async (event) => {
-      const accepted = await consentModal.ensureAccepted();
-      if (!accepted) return;
-
-      decompactModal.open({
-        sourceId: event.detail?.sourceId || null,
-        title: event.detail?.title || "",
-        emptyReason: event.detail?.emptyReason || null,
-      });
+    window.addEventListener("nblc-decompact", (event) => {
+      openDecompact(event.detail || {});
     });
   }
 

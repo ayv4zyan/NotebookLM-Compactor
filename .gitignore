@@ -1,2 +1,5 @@
 .DS_Store
+dist/
+background/background.bundle.js
+lib/batchexecute-client.bundle.js
 icons/*.plasmo.*.png

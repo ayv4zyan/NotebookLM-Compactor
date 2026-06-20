@@ -4,31 +4,31 @@ Run before tagging a release. Use a **throwaway or backup notebook** — Compact
 
 ## Setup
 
-- [ ] Load extension unpacked from repo root or release zip (`manifest.json` at root)
-- [ ] Open `https://notebooklm.google.com` and sign in
-- [ ] Notebook has mixed sources: pasted text, web/URL, YouTube (if available)
+- [x] Load extension unpacked from repo root or release zip (`manifest.json` at root)
+- [x] Open `https://notebooklm.google.com` and sign in
+- [x] Notebook has mixed sources: pasted text, web/URL, YouTube (if available)
 
 ## First-run consent
 
-- [ ] Click **Compact** — consent modal appears
-- [ ] **Not now** closes without opening Compact modal
-- [ ] Re-open Compact — accept Terms + unofficial-interface checkboxes
-- [ ] Consent not shown again on **Decompact** in same profile
+- [x] Click **Compact** — consent modal appears
+- [x] **Not now** closes without opening Compact modal
+- [x] Re-open Compact — accept Terms + unofficial-interface checkboxes
+- [x] Consent not shown again on **Decompact** in same profile
 
 ## Compact
 
-- [ ] Select 3+ sources → Compact → confirm step requires both checkboxes
-- [ ] **Back** returns to source list without changes
-- [ ] Enable backup zip → proceed → success + zip downloads
-- [ ] Notebook shows one `📦 NBLC · …` source; originals deleted
-- [ ] Optional: download NBLC `.md` from success screen opens valid file
+- [x] Select 3+ sources → Compact → confirm step requires both checkboxes
+- [x] **Back** returns to source list without changes
+- [x] Enable backup zip → proceed → success + zip downloads
+- [x] Notebook shows one `📦 NBLC · …` source; originals deleted
+- [x] Optional: download NBLC `.md` from success screen opens valid file
 
 ## Decompact (same machine)
 
-- [ ] Select exactly one NBLC bundle → Decompact
-- [ ] Preview shows restore method per source (link vs pasted text)
-- [ ] Both confirm checkboxes required before button enables
-- [ ] Success → sources restored; NBLC bundle deleted
+- [x] Select exactly one NBLC bundle → Decompact
+- [x] Preview shows restore method per source (link vs pasted text)
+- [x] Both confirm checkboxes required before button enables
+- [x] Success → sources restored; NBLC bundle deleted
 
 ## Cross-machine (optional)
 
@@ -38,13 +38,13 @@ Run before tagging a release. Use a **throwaway or backup notebook** — Compact
 
 ## Failure paths
 
-- [ ] Disconnect network mid-compact → error shown; originals not deleted if upload failed
-- [ ] Cancel during operation not possible while busy (close disabled) — expected
+- [x] Disconnect network mid-compact → error shown; originals not deleted if upload failed
+- [x] Cancel during operation not possible while busy (close disabled) — expected
 
 ## Regression
 
-- [ ] Source panel remains responsive (no freeze) after 30s on notebook page
-- [ ] Buttons still inject after navigating between notebooks
+- [x] Source panel remains responsive (no freeze) after 30s on notebook page
+- [x] Buttons still inject after navigating between notebooks
 
 ## Firefox (v1.1.0 gate)
 
@@ -52,33 +52,33 @@ Run after [FIREFOX_MIGRATION.md](./FIREFOX_MIGRATION.md) PR 1 (gecko manifest) a
 
 ### Setup (Firefox-specific)
 
-- [ ] Firefox ≥ 128.0
-- [ ] Load extension: temporary (`about:debugging` → Load Temporary Add-on) or signed (AMO)
-- [ ] Confirm `manifest.json` includes `browser_specific_settings.gecko.id`
-- [ ] Signed in to Google on `https://notebooklm.google.com`
+- [x] Firefox ≥ 128.0
+- [x] Build Firefox tree: `node scripts/build-extension.mjs` → load `dist/firefox/manifest.json` (temporary via `about:debugging`) or signed (AMO)
+- [x] Confirm `manifest.json` includes `browser_specific_settings.gecko.id`
+- [x] Signed in to Google on `https://notebooklm.google.com`
 
 ### Service worker health
 
-- [ ] `about:debugging` → Inspect service worker → no startup errors
-- [ ] After 30s idle on notebook page, click Compact → SW wakes and fetch succeeds
-- [ ] Decompact 10 sources without timeout or "Extension context invalidated" errors
+- [x] `about:debugging` → Inspect service worker → no startup errors
+- [x] After 30s idle on notebook page, click Compact → SW wakes and fetch succeeds
+- [x] Decompact 10 sources without timeout or "Extension context invalidated" errors
 
 ### Functional parity
 
-- [ ] First-run consent flow
-- [ ] Compact 3+ mixed sources → NBLC created → originals deleted
-- [ ] Backup zip download triggers (Firefox download UI)
-- [ ] Download NBLC `.md` from success screen
-- [ ] Decompact preview shows restore methods
-- [ ] Decompact restores sources; NBLC bundle deleted
-- [ ] Cross-browser: compact on Chrome A → decompact on Firefox B (same Google account)
+- [x] First-run consent flow
+- [x] Compact 3+ mixed sources → NBLC created → originals deleted
+- [x] Backup zip download triggers (Firefox download UI)
+- [x] Download NBLC `.md` from success screen
+- [x] Decompact preview shows restore methods
+- [x] Decompact restores sources; NBLC bundle deleted
+- [x] Cross-browser: compact on Chrome A → decompact on Firefox B (same Google account)
 
 ### Firefox-specific regression
 
-- [ ] Source panel buttons inject (`inventory_2`, `unarchive` icons render)
-- [ ] MutationObserver: no page freeze after 30s navigation between notebooks
+- [x] Source panel buttons inject (`inventory_2`, `unarchive` icons render)
+- [x] MutationObserver: no page freeze after 30s navigation between notebooks
 - [ ] `chrome.storage.onChanged` recovery banner updates
-- [ ] Network failure mid-compact → error shown; originals preserved
+- [x] Network failure mid-compact → error shown; originals preserved
 - [ ] Source titles with `<`, `&`, `"` render correctly in modals (escape verification)
 - [ ] Note temporary add-on restart behavior if applicable
 
@@ -95,5 +95,5 @@ Run after [FIREFOX_MIGRATION.md](./FIREFOX_MIGRATION.md) PR 1 (gecko manifest) a
 
 | Version | Date | Tester | Browser | Pass |
 |---------|------|--------|---------|------|
-| v1.0.0 | | | Chrome | |
-| v1.1.0 | | | Firefox | |
+| v1.0.0 | 2026-06-20 | Artur | Chrome | yes |
+| v1.1.0 | 2026-06-20 | Artur | Firefox | yes |

@@ -16,11 +16,15 @@ jobs:
         with:
           node-version: "22"
 
+      - name: Build browser-specific extension trees
+        run: node scripts/build-extension.mjs
+
       - name: Run unit tests
         run: |
           node test/nblc-format.test.js
           node test/rpc-parse.test.mjs
           node test/source-api.test.mjs
+          node test/batchexecute-parse.test.mjs
 
   lint:
     runs-on: ubuntu-latest
@@ -46,14 +50,23 @@ jobs:
               echo "changed=false" >> "$GITHUB_OUTPUT"
             fi
           fi
-      - name: Validate manifest JSON and gecko block
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Build browser-specific extension trees
+        run: node scripts/build-extension.mjs
+
+      - name: Validate Chrome and Firefox manifests
         run: |
           python -c "import json; json.load(open('manifest.json'))"
-          jq -e '.browser_specific_settings.gecko.id' manifest.json
-      - name: web-ext lint
+          python -c "import json; m=json.load(open('dist/chrome/manifest.json')); assert 'service_worker' in m['background']"
+          python -c "import json; m=json.load(open('dist/firefox/manifest.json')); assert 'scripts' in m['background']"
+          jq -e '.browser_specific_settings.gecko.id' dist/firefox/manifest.json
+      - name: web-ext lint (Firefox dist)
         id: webext
         continue-on-error: ${{ steps.manifest.outputs.changed != 'true' }}
-        run: npx --yes web-ext@8 lint --source-dir .
+        run: npx --yes web-ext@8 lint --source-dir dist/firefox
       - name: Fail if web-ext lint failed on manifest change
         if: steps.manifest.outputs.changed == 'true' && steps.webext.outcome == 'failure'
         run: exit 1

@@ -37,9 +37,11 @@ Quick entry point for AI coding agents. **Full design lives in [CONTEXT.md](./CO
 ## Verification
 
 ```bash
+node scripts/build-extension.mjs
 node test/nblc-format.test.js
 node test/rpc-parse.test.mjs
 node test/source-api.test.mjs
+node test/batchexecute-parse.test.mjs
 ```
 
 CI runs all three on every push/PR to `main`.
@@ -48,7 +50,7 @@ CI runs all three on every push/PR to `main`.
 
 - **`main`** = stable; feature branches (e.g. `phase-2`) merged via PR.
 - No long-lived `develop` branch.
-- Release: tag `v*` (e.g. `v1.0.0`) → GitHub Action builds `notebooklm-compactor.zip` and attaches to Release.
+- Release: tag `v*` (e.g. `v1.0.0`) → GitHub Action builds `notebooklm-compactor-chrome.zip` and `notebooklm-compactor-firefox.zip` and attaches to Release.
 - Pre-release: run [docs/MANUAL_TEST_CHECKLIST.md](./docs/MANUAL_TEST_CHECKLIST.md).
 
 ## Phase 4 checklist (complete)

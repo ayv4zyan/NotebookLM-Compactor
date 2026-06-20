@@ -1,7 +1,22 @@
 #nblc-compact-modal-root,
-#nblc-decompact-modal-root {
-  all: initial;
+#nblc-decompact-modal-root,
+#nblc-consent-modal-root {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  position: fixed;
+  inset: 0;
+  z-index: 2147483646;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  box-sizing: border-box;
+  pointer-events: none;
+}
+
+#nblc-compact-modal-root[data-nblc-open="true"],
+#nblc-decompact-modal-root[data-nblc-open="true"],
+#nblc-consent-modal-root[data-nblc-open="true"] {
+  pointer-events: auto;
 }
 
 .nblc-overlay {
@@ -567,11 +582,6 @@
   font-size: 14px;
   color: #7f1d1d;
   line-height: 1.5;
-}
-
-#nblc-consent-modal-root {
-  all: initial;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }
 
 .nblc-recovery-banner-root {

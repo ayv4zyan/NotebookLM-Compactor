@@ -8,7 +8,7 @@ End-user guide for installing and using NotebookLM Compactor in Firefox.
 
 | Requirement | Detail |
 |-------------|--------|
-| **Firefox version** | **128.0 or newer** (Manifest V3 module service worker support) |
+| **Firefox version** | **128.0 or newer** (Manifest V3 event-page background) |
 | **NotebookLM account** | Logged into [notebooklm.google.com](https://notebooklm.google.com) in the same Firefox profile |
 | **Network** | Access to `notebooklm.google.com` (extension does not call other hosts) |
 
@@ -27,9 +27,9 @@ AMO-signed installs persist across browser restarts (unlike temporary loads).
 
 ## Install from a release zip
 
-Use the same `notebooklm-compactor.zip` as Chrome — one zip for both browsers.
+Firefox needs a different background manifest than Chrome (`background.scripts` instead of `background.service_worker`). Use the Firefox release zip.
 
-1. Open [Releases](https://github.com/ayv4zyan/NotebookLM-Compactor/releases) and download `notebooklm-compactor.zip` for the latest `v*` tag.
+1. Open [Releases](https://github.com/ayv4zyan/NotebookLM-Compactor/releases) and download `notebooklm-compactor-firefox.zip` for the latest `v*` tag.
 2. Unzip to a folder that contains `manifest.json` at its root.
 3. Open `about:debugging` in Firefox.
 4. Click **This Firefox** (left sidebar).
@@ -42,9 +42,10 @@ Use the same `notebooklm-compactor.zip` as Chrome — one zip for both browsers.
 ```bash
 git clone https://github.com/ayv4zyan/NotebookLM-Compactor.git
 cd NotebookLM-Compactor
+node scripts/build-extension.mjs
 ```
 
-Then load via **Load Temporary Add-on…** in `about:debugging` → **This Firefox**, pointing at `manifest.json` in the repo root.
+Then load via **Load Temporary Add-on…** in `about:debugging` → **This Firefox**, pointing at `dist/firefox/manifest.json` (not the repo-root `manifest.json`, which is Chrome-only).
 
 Temporary loads expire on browser restart — same as the release zip method above.
 

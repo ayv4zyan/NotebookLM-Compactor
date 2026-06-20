@@ -1,4 +1,8 @@
 import {
+  describeBatchExecuteParseFailure,
+  parseBatchExecuteResponse,
+} from "./batchexecute-parse.js";
+import {
   extractSourceId,
   findSourceInNotebook,
 } from "./rpc-parse.js";
@@ -126,18 +130,6 @@ function buildDeleteBody(sourceIds, atToken) {
   return buildFReqBody(RPC_DELETE, params, atToken);
 }
 
-function parseBatchExecuteResponse(text) {
-  const lines = text.split("\n");
-  for (const line of lines) {
-    if (!line.startsWith("[[")) continue;
-    const parsed = JSON.parse(line);
-    if (parsed[0]?.[2]) {
-      return JSON.parse(parsed[0][2]);
-    }
-  }
-  return null;
-}
-
 const MIN_REQUEST_INTERVAL_MS = 400;
 let lastBatchExecuteAt = 0;
 
@@ -166,8 +158,13 @@ async function batchExecute({ notebookId, rpcId, body, blVersion }) {
 
   const text = await response.text();
   const innerData = parseBatchExecuteResponse(text);
+  if (innerData?.__authError) {
+    throw new Error(
+      "Session expired or not logged in — refresh NotebookLM and try again"
+    );
+  }
   if (!innerData) {
-    throw new Error("Failed to parse API response");
+    throw new Error(describeBatchExecuteParseFailure(text));
   }
 
   return innerData;

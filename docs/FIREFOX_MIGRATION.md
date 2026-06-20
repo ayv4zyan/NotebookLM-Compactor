@@ -12,7 +12,7 @@ The extension is **already cross-browser at the API level**. No Chrome-only APIs
 |---------------|-------|---------|
 | `chrome.storage.local` | `lib/manifest-store.js`, `lib/user-consent.js`, `background/storage-sweep.js`, `content/recovery-banner.js` | ✅ |
 | `chrome.runtime` messaging | `background/index.js`, `content/compact-modal.js`, `content/decompact-modal.js` | ✅ |
-| MV3 ES module service worker | `background/index.js` | ✅ (Firefox 128+) |
+| MV3 background (event page) | `background/background.bundle.js` via `background.scripts` | ✅ (Firefox 128+; not `service_worker`) |
 | `fetch` + `credentials: "include"` | `background/source-api.js` | ✅ (verify in QA) |
 | Content-script Blob downloads | `content/compact-modal.js` | ✅ |
 | DOM scraping | `lib/notebooklm-api.js`, `lib/source-panel-inject.js` | ⚠️ untested — QA required |
@@ -72,7 +72,7 @@ AMO review is **not** a gate for the GitHub tag. Tag first; submit after.
 
 1. Create or log in to the [Firefox Add-on Developer Hub](https://addons.mozilla.org/developers/).
 2. Create a new extension listing (or new version on existing listing).
-3. Upload `notebooklm-compactor.zip` from the `v1.1.0` GitHub Release — not the git working tree.
+3. Upload `notebooklm-compactor-firefox.zip` from the `v1.1.0` GitHub Release — not the git working tree.
 4. Upload the **source code archive** (see [AMO source-code submission](#4-amo-source-code-submission) below).
 5. Paste listing copy from [AMO_LISTING.md](./AMO_LISTING.md) (PR 3).
 6. Set privacy policy URL to `PRIVACY.md` on GitHub (same as Chrome Web Store).
@@ -97,12 +97,12 @@ git push origin main
 git push origin v1.1.0
 ```
 
-This triggers `.github/workflows/release.yml` → `notebooklm-compactor.zip` on GitHub Releases.
+This triggers `.github/workflows/release.yml` → `notebooklm-compactor-chrome.zip` and `notebooklm-compactor-firefox.zip` on GitHub Releases.
 
 ### 2. Verify GitHub Release zip
 
-1. Download `notebooklm-compactor.zip` from the `v1.1.0` GitHub Release.
-2. Confirm `manifest.json` inside the zip includes `browser_specific_settings.gecko` and `"version": "1.1.0"`.
+1. Download `notebooklm-compactor-firefox.zip` from the `v1.1.0` GitHub Release.
+2. Confirm `manifest.json` inside the zip includes `browser_specific_settings.gecko`, `"version": "1.1.0"`, and `background.scripts` (not `service_worker`).
 3. Load in a **clean Firefox profile** via `about:debugging` → Load Temporary Add-on.
 4. Run a minimal Compact + Decompact on a throwaway notebook.
 
@@ -135,7 +135,7 @@ Update [FIREFOX.md](./FIREFOX.md) with the live AMO listing URL (follow-up commi
 
 ### 6. Chrome Web Store (optional)
 
-Upload the same `notebooklm-compactor.zip` to Chrome Web Store for version parity (`v1.1.0`).
+Upload `notebooklm-compactor-chrome.zip` to Chrome Web Store for version parity (`v1.1.0`).
 
 ## Rollout sequence
 

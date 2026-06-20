@@ -73,7 +73,7 @@ Recommended size: 1280×800 or 640×400. No Google trademarks presented as if en
 ## Developer checklist
 
 - [ ] $5 Chrome Web Store developer account registered
-- [ ] Upload `notebooklm-compactor.zip` from GitHub Release (not the git repo folder)
+- [ ] Upload `notebooklm-compactor-chrome.zip` from GitHub Release (not the git repo folder)
 - [ ] Privacy policy URL reachable
 - [ ] Screenshots attached
 - [ ] Test install from submitted package in a clean Chrome profile

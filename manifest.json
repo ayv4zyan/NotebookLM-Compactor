@@ -23,8 +23,7 @@
   "permissions": ["storage", "unlimitedStorage"],
   "host_permissions": ["https://notebooklm.google.com/*"],
   "background": {
-    "service_worker": "background/index.js",
-    "type": "module"
+    "service_worker": "background/background.bundle.js"
   },
   "content_scripts": [
     {
@@ -36,6 +35,8 @@
         "lib/user-consent.js",
         "lib/notebooklm-api.js",
         "lib/modal-a11y.js",
+        "lib/batchexecute-client.bundle.js",
+        "lib/runtime-messaging.js",
         "lib/source-panel-inject.js",
         "content/consent-modal.js",
         "content/compact-modal.js",

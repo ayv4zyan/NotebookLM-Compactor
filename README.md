@@ -21,13 +21,13 @@ Decompact works **cross-machine**: all restore metadata lives inside the NBLC ma
 
 ## Install
 
-The same `notebooklm-compactor.zip` from [Releases](https://github.com/ayv4zyan/NotebookLM-Compactor/releases) works for **both Chrome and Firefox**.
+Releases ship two zips from [Releases](https://github.com/ayv4zyan/NotebookLM-Compactor/releases): `notebooklm-compactor-chrome.zip` and `notebooklm-compactor-firefox.zip`. Chrome and Firefox require different `background` manifest fields, so use the zip that matches your browser.
 
 ### Chrome / Chromium
 
 #### From a release (recommended)
 
-1. Download `notebooklm-compactor.zip` for the latest `v*` tag.
+1. Download `notebooklm-compactor-chrome.zip` for the latest `v*` tag.
 2. Unzip to a folder that contains `manifest.json` at its root.
 3. Open `chrome://extensions` (or `chromium://extensions`) → enable **Developer mode**.
 4. Click **Load unpacked** → select that folder.
@@ -37,9 +37,10 @@ The same `notebooklm-compactor.zip` from [Releases](https://github.com/ayv4zyan/
 ```bash
 git clone https://github.com/ayv4zyan/NotebookLM-Compactor.git
 cd NotebookLM-Compactor
+node scripts/build-extension.mjs
 ```
 
-Then **Load unpacked** in `chrome://extensions` pointing at the repo root (the directory with `manifest.json`).
+Then **Load unpacked** in `chrome://extensions` pointing at `dist/chrome` (or the repo root after the build step creates bundles).
 
 > **Note:** Chromium assigns a random extension ID for unpacked installs. That is normal and does not affect functionality.
 
@@ -49,8 +50,8 @@ See **[docs/FIREFOX.md](./docs/FIREFOX.md)** for full install steps, requirement
 
 Quick start from a release zip:
 
-1. Download and unzip `notebooklm-compactor.zip` (same file as Chrome).
-2. Open `about:debugging` → **This Firefox** → **Load Temporary Add-on…** → select `manifest.json`.
+1. Download and unzip `notebooklm-compactor-firefox.zip`.
+2. Open `about:debugging` → **This Firefox** → **Load Temporary Add-on…** → select `manifest.json` inside the unzipped folder.
 
 > **Note:** Temporary loads expire on Firefox restart. After AMO approval, install from the Mozilla Add-ons listing for a permanent add-on (URL in [FIREFOX.md](./docs/FIREFOX.md)).
 
@@ -117,7 +118,7 @@ CI runs all three on every push and pull request to `main`.
 
 ### Cutting a release
 
-Push a version tag to build `notebooklm-compactor.zip` and attach it to a GitHub Release:
+Push a version tag to build `notebooklm-compactor-chrome.zip` and `notebooklm-compactor-firefox.zip` and attach them to a GitHub Release:
 
 ```bash
 git tag v1.0.0

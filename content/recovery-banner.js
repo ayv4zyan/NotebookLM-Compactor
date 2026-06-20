@@ -5,6 +5,11 @@
     SOURCE_PANEL: ".source-panel",
   };
 
+  const MODAL_ROOTS = {
+    compact: "nblc-compact-modal-root",
+    decompact: "nblc-decompact-modal-root",
+  };
+
   let bannerRoot = null;
   let dismissTarget = null;
   let recoveryState = { compact: null, decompact: null };
@@ -38,6 +43,11 @@
       return `Decompact interrupted — <strong>${done}</strong> of <strong>${total}</strong> sources restored. Resume will continue from the next source.`;
     }
     return `Decompact did not finish — resume will read the NBLC bundle from your notebook and continue.`;
+  }
+
+  function isOperationModalOpen(type) {
+    const root = document.getElementById(MODAL_ROOTS[type]);
+    return root?.dataset.nblcOpen === "true";
   }
 
   function renderDismissConfirm(target) {
@@ -116,11 +126,11 @@
 
     const items = [];
 
-    if (recoveryState.compact) {
+    if (recoveryState.compact && !isOperationModalOpen("compact")) {
       items.push(renderItem("compact", recoveryState.compact));
     }
 
-    if (recoveryState.decompact) {
+    if (recoveryState.decompact && !isOperationModalOpen("decompact")) {
       items.push(renderItem("decompact", recoveryState.decompact));
     }
 
