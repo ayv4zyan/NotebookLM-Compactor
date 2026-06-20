@@ -2,6 +2,8 @@
 
 Quick entry point for AI coding agents. **Full design lives in [CONTEXT.md](./CONTEXT.md)** — read that before making architectural changes.
 
+**Browsers:** Chrome and Firefox (≥ 128). Firefox migration plan: [docs/FIREFOX_MIGRATION.md](./docs/FIREFOX_MIGRATION.md).
+
 ## Current status
 
 | Phase | Status | Notes |

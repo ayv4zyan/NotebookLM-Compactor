@@ -2,6 +2,19 @@
 
 **Implementation status:** Phases 1–5 complete — public release `v1.0.0`. See [AGENTS.md](../AGENTS.md).
 
+## Browser compatibility
+
+NotebookLM Compactor targets **Chrome/Chromium** and **Firefox ≥ 128** from a **single codebase and release zip**.
+
+| Aspect | Detail |
+|--------|--------|
+| **API namespace** | `chrome.storage`, `chrome.runtime` — WebExtensions-compatible; Firefox supports `chrome.*` without a polyfill |
+| **Manifest** | MV3 with ES module service worker; Firefox adds `browser_specific_settings.gecko` (see [FIREFOX_MIGRATION.md](./FIREFOX_MIGRATION.md)) |
+| **NBLC portability** | Cross-browser and cross-machine — restore metadata lives in uploaded markdown, not extension storage |
+| **Untested assumptions** | NotebookLM DOM scraping and extension `fetch` cookie behavior in Firefox — gated by [MANUAL_TEST_CHECKLIST.md](./MANUAL_TEST_CHECKLIST.md) Firefox section before `v1.1.0` |
+
+User install paths: [FIREFOX.md](./FIREFOX.md) (Firefox), [README.md](../README.md#install) (Chrome).
+
 ## System context
 
 ```
@@ -22,7 +35,7 @@
 │  │ NBLC format │  │ events       │  │ batchexecute     │  │
 │  │ storage     │  └──────┬───────┘  └────────┬─────────┘  │
 │  └─────────────┘         │                    │            │
-│                          └──── chrome.runtime.sendMessage ─┘
+│                          └──── chrome.runtime.sendMessage (WebExtensions API) ─┘
 └─────────────────────────────────────────────────────────────┘
           │
 ┌─────────▼───────────────────────────────────────────────────┐

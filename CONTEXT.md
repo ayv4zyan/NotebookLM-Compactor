@@ -2,11 +2,11 @@
 
 **Read this file first.** It captures the full design, API knowledge, and decisions from the planning session.
 
-**Implementation status (2026-06-20):** Phases 1–5 complete — first public release `v1.0.0`. See [AGENTS.md](./AGENTS.md) for a short agent entry point.
+**Implementation status (2026-06-20):** Phases 1–5 complete — first public release `v1.0.0`. Firefox support planned for `v1.1.0` — see [docs/FIREFOX_MIGRATION.md](./docs/FIREFOX_MIGRATION.md). See [AGENTS.md](./AGENTS.md) for a short agent entry point.
 
 ## Project goal
 
-Chrome extension that **reduces NotebookLM source count** by merging many sources into one, while supporting **lossless decompact** on any machine.
+Chrome and Firefox extension that **reduces NotebookLM source count** by merging many sources into one, while supporting **lossless decompact** on any machine.
 
 ### Problem
 
@@ -203,6 +203,7 @@ NotebookLM-Compactor/
     NBLC-FORMAT.md
     ARCHITECTURE.md
     CHROME_WEB_STORE.md
+    FIREFOX_MIGRATION.md
     MANUAL_TEST_CHECKLIST.md
   background/
     index.js                 ✅ message router + stale storage sweep
