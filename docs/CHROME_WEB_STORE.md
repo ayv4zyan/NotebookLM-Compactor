@@ -1,6 +1,6 @@
 # Chrome Web Store listing
 
-Draft copy and submission notes for `v1.3.2+`. Repo can stay private until you flip visibility; use these URLs once public (or use raw links if GitHub allows collaborators to view).
+Draft copy and submission notes for `v1.0.0+`. Repo can stay private until you flip visibility; use these URLs once public (or use raw links if GitHub allows collaborators to view).
 
 ## URLs
 

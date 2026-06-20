@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "NotebookLM Compactor",
-  "version": "1.3.3",
+  "version": "1.0.0",
   "description": "Merge NotebookLM sources into portable NBLC bundles and replace originals with one compacted source.",
   "homepage_url": "https://github.com/ayv4zyan/NotebookLM-Compactor",
   "icons": {

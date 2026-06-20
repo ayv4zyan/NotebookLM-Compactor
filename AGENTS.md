@@ -9,10 +9,10 @@ Quick entry point for AI coding agents. **Full design lives in [CONTEXT.md](./CO
 | **1** | ✅ Done | NBLC merge/parse, Compact UI, `chrome.storage` backup, optional zip download. **No upload or delete.** |
 | **2** | ✅ Done | `addText` (`izAoDd`), `getNotebook` poll (`rLM1Ne`), `delete` (`tGMBJ`), full compact flow |
 | **3** | ✅ Done | Decompact UI + parse + upload N + delete compacted |
-| **4** | ✅ Done | Smart URL/YouTube restore; dynamic `bl` extraction; YouTube URL capture fix (`v1.3.1`) |
-| **5** | ✅ Done | Public-ready docs, consent gates, destructive confirmations, `SECURITY.md` (`v1.3.2`) |
+| **4** | ✅ Done | Smart URL/YouTube restore; dynamic `bl` extraction; YouTube URL capture fix |
+| **5** | ✅ Done | Public-ready docs, consent gates, destructive confirmations, `SECURITY.md` |
 
-**Extension version:** `1.3.2` (manifest) · **GitHub:** `ayv4zyan/NotebookLM-Compactor`
+**Extension version:** `1.0.0` (manifest) · **GitHub:** `ayv4zyan/NotebookLM-Compactor`
 
 ## Before you code
 
@@ -46,7 +46,7 @@ CI runs all three on every push/PR to `main`.
 
 - **`main`** = stable; feature branches (e.g. `phase-2`) merged via PR.
 - No long-lived `develop` branch.
-- Release: tag `v*` (e.g. `v1.3.2`) → GitHub Action builds `notebooklm-compactor.zip` and attaches to Release.
+- Release: tag `v*` (e.g. `v1.0.0`) → GitHub Action builds `notebooklm-compactor.zip` and attaches to Release.
 - Pre-release: run [docs/MANUAL_TEST_CHECKLIST.md](./docs/MANUAL_TEST_CHECKLIST.md).
 
 ## Phase 4 checklist (complete)

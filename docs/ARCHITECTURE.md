@@ -1,6 +1,6 @@
 # Architecture
 
-**Implementation status:** Phase 4 complete (`v1.3.1`) — smart URL/YouTube restore on decompact; dynamic `bl` extraction; correct YouTube URL capture on compact. See [AGENTS.md](../AGENTS.md).
+**Implementation status:** Phases 1–5 complete — public release `v1.0.0`. See [AGENTS.md](../AGENTS.md).
 
 ## System context
 

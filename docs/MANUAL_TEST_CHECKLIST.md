@@ -50,4 +50,4 @@ Run before tagging a release. Use a **throwaway or backup notebook** — Compact
 
 | Version | Date | Tester | Pass |
 |---------|------|--------|------|
-| v1.3.2 | | | |
+| v1.0.0 | | | |

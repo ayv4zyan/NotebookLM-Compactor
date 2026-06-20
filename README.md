@@ -2,7 +2,7 @@
 
 Chrome / Chromium extension that merges many [NotebookLM](https://notebooklm.google.com) sources into one **NBLC** bundle to save **source count quota**, with full **decompact** restore on any machine.
 
-**Current release:** `v1.3.2`
+**Current release:** `v1.0.0`
 
 ## What it does
 
@@ -60,7 +60,7 @@ Buttons appear only on `notebooklm.google.com` — there is no toolbar popup.
 |-------|--------|
 | Source count | Assumes NotebookLM’s ~50-source-per-notebook limit; not verified against every account tier. |
 | Bundle size | Very large merges (e.g. 30+ long transcripts) are untested at scale; NotebookLM may reject oversized pasted text. |
-| URL restore | YouTube and web sources restore as live links when URL metadata is present. Bundles compacted before `v1.3.1` may lack stored URLs — re-compact to enable link restore. |
+| URL restore | YouTube and web sources restore as live links when URL metadata is present. Older bundles without `url:` metadata may lack stored URLs — re-compact to enable link restore. |
 | Citations | NotebookLM cites source **titles**, not sub-sections inside a merged file. NBLC uses `# [index] Title` headings to preserve provenance. |
 | Storage | `chrome.storage.local` holds a temporary rollback buffer during operations only; cleared on success. |
 
@@ -104,8 +104,8 @@ CI runs all three on every push and pull request to `main`.
 Push a version tag to build `notebooklm-compactor.zip` and attach it to a GitHub Release:
 
 ```bash
-git tag v1.3.2
-git push origin v1.3.2
+git tag v1.0.0
+git push origin v1.0.0
 ```
 
 The zip can be loaded unpacked or submitted to the Chrome Web Store.

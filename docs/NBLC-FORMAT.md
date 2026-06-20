@@ -45,7 +45,7 @@ version: 1
 created: 2026-06-19T14:30:00Z
 notebook: optional-notebook-slug-or-id
 source_count: 33
-compactor: NotebookLM-Compactor/1.3.1
+compactor: NotebookLM-Compactor/1.0.0
 ---END-BUNDLE---
 
 # NotebookLM Compactor Bundle
@@ -167,7 +167,7 @@ When a bundle is uploaded as pasted text and later fetched via `hizoJc`, Noteboo
 | `---END-META---` also stripped | Fall back to indexed heading split; meta recovered from preceding `index:` lines when present |
 | Headings returned without `#` prefix | Match `^#{0,3}\s*\[(\d+)\]\s+(.+)$` |
 
-Bundles compacted with any extension version (`1.1.0`, `1.2.0`, etc.) remain decompactable as long as `version: 1` and indexed headings or meta lines survive.
+Bundles compacted with any extension version remain decompactable as long as `version: 1` and indexed headings or meta lines survive.
 
 ---
 
@@ -185,7 +185,7 @@ Implemented in `resolveDecompactUpload()` (`lib/nblc-format.js`). URL may come f
 
 Decompact preview shows restore method per source. Warning `no URL found — will paste transcript` means live link restore is not possible for that section.
 
-**Note:** Bundles compacted before `v1.3.1` may lack `url:` meta (YouTube URLs were not extracted correctly during compact). Re-compact from originals to store URLs.
+**Note:** Older bundles may lack `url:` meta (YouTube URLs were not extracted correctly during compact). Re-compact from originals to store URLs.
 
 ---
 

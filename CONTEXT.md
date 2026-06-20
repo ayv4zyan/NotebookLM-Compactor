@@ -2,7 +2,7 @@
 
 **Read this file first.** It captures the full design, API knowledge, and decisions from the planning session.
 
-**Implementation status (2026-06-19):** Phase 1 ✅ `v1.0.0`. Phase 2 ✅ `v1.1.0` (full compact). Phase 3 ✅ `v1.2.0` (decompact). Phase 4 ✅ `v1.3.1` (smart URL restore + dynamic `bl` + correct YouTube metadata extraction on compact). Phase 5 ✅ `v1.3.2` (LICENSE/TERMS/PRIVACY/SECURITY, consent gate, destructive confirmations, store listing docs). See [AGENTS.md](./AGENTS.md) for a short agent entry point.
+**Implementation status (2026-06-20):** Phases 1–5 complete — first public release `v1.0.0`. See [AGENTS.md](./AGENTS.md) for a short agent entry point.
 
 ## Project goal
 
@@ -175,8 +175,8 @@ Cleanup: remove key on success; keep on failure; sweep stale >24h.
 |-------|-------------|--------|
 | **1** | NBLC merge/split + Compact UI + local backup in storage + download zip option. **No delete, no upload.** | ✅ Done |
 | **2** | `addText` + `waitForSourceReady` + full compact with delete | ✅ Done |
-| **3** | Decompact UI + parse + upload N + delete compacted | ✅ Done (`v1.2.0`) |
-| **4** | Smart restore: URL/YouTube from metadata; extract `bl` from page HTML | ✅ Done (`v1.3.1`) |
+| **3** | Decompact UI + parse + upload N + delete compacted | ✅ Done |
+| **4** | Smart restore: URL/YouTube from metadata; extract `bl` from page HTML | ✅ Done |
 
 ### Compact behavior (current)
 
@@ -184,7 +184,7 @@ Select sources → fetch (`hizoJc`, captures `url` + `sourceType` from metadata)
 
 ### Decompact behavior (current)
 
-Select one NBLC-titled source → fetch bundle (`hizoJc`) → parse with round-trip fallbacks → preview (shows restore method per source) → upload each section via `addYoutube`, `addUrl`, or `addText` (`izAoDd` + `waitForSourceReady`) → delete compacted source → clear storage. YouTube/web sources restore as live links when `url` is in meta or recoverable from section content. Works cross-machine without extension storage. On partial upload failure: storage retains progress; retry resumes from next source. Bundles compacted before `v1.3.1` may lack stored URLs — re-compact to enable live link restore.
+Select one NBLC-titled source → fetch bundle (`hizoJc`) → parse with round-trip fallbacks → preview (shows restore method per source) → upload each section via `addYoutube`, `addUrl`, or `addText` (`izAoDd` + `waitForSourceReady`) → delete compacted source → clear storage. YouTube/web sources restore as live links when `url` is in meta or recoverable from section content. Works cross-machine without extension storage. On partial upload failure: storage retains progress; retry resumes from next source. Older bundles without `url:` metadata may lack stored URLs — re-compact to enable live link restore.
 
 ---
 
@@ -195,7 +195,7 @@ NotebookLM-Compactor/
   AGENTS.md                  ← short agent entry (status, conventions)
   CONTEXT.md                 ← this file (full design)
   README.md
-  manifest.json              ✅ v1.3.2
+  manifest.json              ✅ v1.0.0
   LICENSE TERMS.md PRIVACY.md SECURITY.md
   .github/workflows/         ✅ ci.yml (tests), release.yml (zip on v* tag)
   docs/
@@ -287,11 +287,11 @@ NotebookLM Compactor/              # parent workspace (not a git repo)
   NotebookLM-Ultra-Exporter.crx    # original reverse-engineering source
   extracted/                       # unpacked CRX (reference only)
   NotebookLM-Source-Downloader/    # ✅ working download extension (sibling)
-  NotebookLM-Compactor/            # ✅ this extension — git repo, `v1.3.2`
+  NotebookLM-Compactor/            # ✅ this extension — git repo, `v1.0.0`
 ```
 
 ---
 
 ## Next steps for agent
 
-Phase 5 is complete (`v1.3.2`). Remaining open items: sign off [docs/MANUAL_TEST_CHECKLIST.md](./docs/MANUAL_TEST_CHECKLIST.md); stress-test 30+ long transcripts; confirm NotebookLM source count limit; Chrome Web Store submit ([docs/CHROME_WEB_STORE.md](./docs/CHROME_WEB_STORE.md)).
+First public release (`v1.0.0`) is tagged. Remaining open items: sign off [docs/MANUAL_TEST_CHECKLIST.md](./docs/MANUAL_TEST_CHECKLIST.md); stress-test 30+ long transcripts; confirm NotebookLM source count limit; Chrome Web Store submit ([docs/CHROME_WEB_STORE.md](./docs/CHROME_WEB_STORE.md)).
