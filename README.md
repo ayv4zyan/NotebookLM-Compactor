@@ -1,6 +1,6 @@
 # NotebookLM Compactor
 
-Chrome / Chromium extension that merges many [NotebookLM](https://notebooklm.google.com) sources into one **NBLC** bundle to save **source count quota**, with full **decompact** restore on any machine.
+Chrome and Firefox extension that merges many [NotebookLM](https://notebooklm.google.com) sources into one **NBLC** bundle to save **source count quota**, with full **decompact** restore on any machine.
 
 **Current release:** `v1.0.0`
 
@@ -21,14 +21,18 @@ Decompact works **cross-machine**: all restore metadata lives inside the NBLC ma
 
 ## Install
 
-### From a release (recommended)
+The same `notebooklm-compactor.zip` from [Releases](https://github.com/ayv4zyan/NotebookLM-Compactor/releases) works for **both Chrome and Firefox**.
 
-1. Open [Releases](https://github.com/ayv4zyan/NotebookLM-Compactor/releases) and download `notebooklm-compactor.zip` for the latest `v*` tag.
+### Chrome / Chromium
+
+#### From a release (recommended)
+
+1. Download `notebooklm-compactor.zip` for the latest `v*` tag.
 2. Unzip to a folder that contains `manifest.json` at its root.
 3. Open `chrome://extensions` (or `chromium://extensions`) → enable **Developer mode**.
 4. Click **Load unpacked** → select that folder.
 
-### From source (development)
+#### From source (development)
 
 ```bash
 git clone https://github.com/ayv4zyan/NotebookLM-Compactor.git
@@ -38,6 +42,17 @@ cd NotebookLM-Compactor
 Then **Load unpacked** in `chrome://extensions` pointing at the repo root (the directory with `manifest.json`).
 
 > **Note:** Chromium assigns a random extension ID for unpacked installs. That is normal and does not affect functionality.
+
+### Firefox
+
+See **[docs/FIREFOX.md](./docs/FIREFOX.md)** for full install steps, requirements (Firefox ≥ 128), AMO install, temporary load via `about:debugging`, and Firefox-specific troubleshooting.
+
+Quick start from a release zip:
+
+1. Download and unzip `notebooklm-compactor.zip` (same file as Chrome).
+2. Open `about:debugging` → **This Firefox** → **Load Temporary Add-on…** → select `manifest.json`.
+
+> **Note:** Temporary loads expire on Firefox restart. After AMO approval, install from the Mozilla Add-ons listing for a permanent add-on (URL in [FIREFOX.md](./docs/FIREFOX.md)).
 
 ## Usage
 
@@ -62,7 +77,8 @@ Buttons appear only on `notebooklm.google.com` — there is no toolbar popup.
 | Bundle size | Very large merges (e.g. 30+ long transcripts) are untested at scale; NotebookLM may reject oversized pasted text. |
 | URL restore | YouTube and web sources restore as live links when URL metadata is present. Older bundles without `url:` metadata may lack stored URLs — re-compact to enable link restore. |
 | Citations | NotebookLM cites source **titles**, not sub-sections inside a merged file. NBLC uses `# [index] Title` headings to preserve provenance. |
-| Storage | `chrome.storage.local` holds a temporary rollback buffer during operations only; cleared on success. |
+| Storage | `browser.storage.local` holds a temporary rollback buffer during operations only; cleared on success. |
+| Firefox temporary load | `about:debugging` installs are removed on browser restart until AMO listing is available. |
 
 ## Privacy
 
@@ -76,14 +92,14 @@ Full policy: [PRIVACY.md](./PRIVACY.md) · Technical detail: [docs/ARCHITECTURE.
 |----------|---------|
 | [LICENSE](./LICENSE) | MIT — open-source code |
 | [TERMS.md](./TERMS.md) | Extension use terms, disclaimers, liability limits |
-| [PRIVACY.md](./PRIVACY.md) | Required for Chrome Web Store; describes local-only data handling |
+| [PRIVACY.md](./PRIVACY.md) | Required for Chrome Web Store and AMO; describes local-only data handling |
 | [SECURITY.md](./SECURITY.md) | User-initiated design, data flow, compliance posture |
 
 **In the extension:** first-run acceptance of Terms + Privacy; separate confirmations before destructive Compact/Decompact steps.
 
 This software is provided as-is. Using it with NotebookLM may conflict with Google’s service terms; you choose whether to accept that risk on your own account.
 
-NotebookLM and Google are trademarks of Google LLC. This extension is independent and is not affiliated with, endorsed, or sponsored by Google.
+NotebookLM and Google are trademarks of Google LLC. This extension is independent and is not affiliated with, endorsed by, or sponsored by Google.
 
 ---
 
@@ -108,13 +124,13 @@ git tag v1.0.0
 git push origin v1.0.0
 ```
 
-The zip can be loaded unpacked or submitted to the Chrome Web Store.
+The zip can be loaded unpacked (Chrome), loaded temporarily (Firefox), or submitted to the Chrome Web Store and AMO.
 
 ### Implementation status
 
 | Phase | What works |
 |-------|------------|
-| **1** ✅ | Select sources → fetch → merge NBLC → `chrome.storage` backup → optional zip / `.md` download |
+| **1** ✅ | Select sources → fetch → merge NBLC → `browser.storage` backup → optional zip / `.md` download |
 | **2** ✅ | Upload compacted source, poll until ready, delete originals |
 | **3** ✅ | Decompact NBLC back into separate sources (cross-machine, no storage required) |
 | **4** ✅ | Smart URL/YouTube restore (`addUrl` / `addYoutube`); dynamic `bl` extraction from page HTML |
@@ -127,7 +143,7 @@ The zip can be loaded unpacked or submitted to the Chrome Web Store.
 
 **Portable decompact:** all metadata lives inside the uploaded NBLC markdown — no cross-browser storage dependency.
 
-**Temporary storage:** `chrome.storage.local` only during operations; cleared on success.
+**Temporary storage:** `browser.storage.local` only during operations; cleared on success.
 
 ## Documentation
 
@@ -138,7 +154,10 @@ The zip can be loaded unpacked or submitted to the Chrome Web Store.
 | [docs/API.md](./docs/API.md) | Contributors | batchexecute RPCs: get, delete, upload, poll |
 | [docs/NBLC-FORMAT.md](./docs/NBLC-FORMAT.md) | Contributors | Self-contained compact file format (v1) |
 | [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md) | Contributors | Components, sequences, error handling |
-| [docs/CHROME_WEB_STORE.md](./docs/CHROME_WEB_STORE.md) | Maintainers | Store listing copy and permission justifications |
+| [docs/FIREFOX.md](./docs/FIREFOX.md) | Users | Firefox install, usage, troubleshooting |
+| [docs/CHROME_WEB_STORE.md](./docs/CHROME_WEB_STORE.md) | Maintainers | Chrome Web Store listing copy and permission justifications |
+| [docs/AMO_LISTING.md](./docs/AMO_LISTING.md) | Maintainers | Firefox Add-ons listing copy and source submission notes |
+| [docs/FIREFOX_MIGRATION.md](./docs/FIREFOX_MIGRATION.md) | Maintainers | Firefox migration plan, AMO runbook, QA gates |
 | [docs/MANUAL_TEST_CHECKLIST.md](./docs/MANUAL_TEST_CHECKLIST.md) | Maintainers | Pre-release manual QA checklist |
 
 ## External references
