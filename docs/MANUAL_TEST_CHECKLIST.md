@@ -46,8 +46,54 @@ Run before tagging a release. Use a **throwaway or backup notebook** — Compact
 - [ ] Source panel remains responsive (no freeze) after 30s on notebook page
 - [ ] Buttons still inject after navigating between notebooks
 
+## Firefox (v1.1.0 gate)
+
+Run after [FIREFOX_MIGRATION.md](./FIREFOX_MIGRATION.md) PR 1 (gecko manifest) and this checklist section are merged. Use a **throwaway notebook**.
+
+### Setup (Firefox-specific)
+
+- [ ] Firefox ≥ 128.0
+- [ ] Load extension: temporary (`about:debugging` → Load Temporary Add-on) or signed (AMO)
+- [ ] Confirm `manifest.json` includes `browser_specific_settings.gecko.id`
+- [ ] Signed in to Google on `https://notebooklm.google.com`
+
+### Service worker health
+
+- [ ] `about:debugging` → Inspect service worker → no startup errors
+- [ ] After 30s idle on notebook page, click Compact → SW wakes and fetch succeeds
+- [ ] Decompact 10 sources without timeout or "Extension context invalidated" errors
+
+### Functional parity
+
+- [ ] First-run consent flow
+- [ ] Compact 3+ mixed sources → NBLC created → originals deleted
+- [ ] Backup zip download triggers (Firefox download UI)
+- [ ] Download NBLC `.md` from success screen
+- [ ] Decompact preview shows restore methods
+- [ ] Decompact restores sources; NBLC bundle deleted
+- [ ] Cross-browser: compact on Chrome A → decompact on Firefox B (same Google account)
+
+### Firefox-specific regression
+
+- [ ] Source panel buttons inject (`inventory_2`, `unarchive` icons render)
+- [ ] MutationObserver: no page freeze after 30s navigation between notebooks
+- [ ] `chrome.storage.onChanged` recovery banner updates
+- [ ] Network failure mid-compact → error shown; originals preserved
+- [ ] Source titles with `<`, `&`, `"` render correctly in modals (escape verification)
+- [ ] Note temporary add-on restart behavior if applicable
+
+### Performance (manual observation)
+
+| Operation | Sources | Target | Failure indicator |
+|-----------|---------|--------|-------------------|
+| Compact fetch | 5 | < 15s | Modal stuck in "fetching" |
+| Compact full | 5 | < 90s | SW unhandled rejection |
+| Decompact | 10 | < 5 min | Timeout errors in modal |
+| `waitForSourceReady` | 1 large paste | < 120s | "Timeout waiting for source" |
+
 ## Sign-off
 
-| Version | Date | Tester | Pass |
-|---------|------|--------|------|
-| v1.0.0 | | | |
+| Version | Date | Tester | Browser | Pass |
+|---------|------|--------|---------|------|
+| v1.0.0 | | | Chrome | |
+| v1.1.0 | | | Firefox | |

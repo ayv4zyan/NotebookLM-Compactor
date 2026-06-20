@@ -21,13 +21,13 @@ When you use Compact or Decompact, the Extension may access:
 | NotebookLM source text and metadata | Merge, upload, restore, or delete sources you selected | Sent to `notebooklm.google.com` over HTTPS using your browser session |
 | Notebook IDs and source IDs | Identify which notebook and sources you selected | Used locally and in requests to NotebookLM |
 | Session cookies / auth tokens | Reuse your existing logged-in NotebookLM session | Read from the browser context; sent only to Google endpoints the web app already uses |
-| Temporary operation state | Rollback if an operation fails mid-flight | Stored in `chrome.storage.local` on your device |
+| Temporary operation state | Rollback if an operation fails mid-flight | Stored in browser extension local storage (`chrome.storage.local` / WebExtensions storage API) on your device |
 
 The Extension does not ask for your Google password. It does not add separate sign-in.
 
 ## Local storage
 
-The Extension uses `chrome.storage.local` as a **temporary workflow buffer** during compact or decompact operations. It stores progress metadata (for example, which sources finished uploading), not a second copy of your full notebook text — the NBLC bundle stays in NotebookLM. On success, local data is cleared. Stale entries older than 24 hours are removed on extension startup.
+The Extension uses browser extension local storage (`chrome.storage.local` / WebExtensions storage API) as a **temporary workflow buffer** during compact or decompact operations. It stores progress metadata (for example, which sources finished uploading), not a second copy of your full notebook text — the NBLC bundle stays in NotebookLM. On success, local data is cleared. Stale entries older than 24 hours are removed on extension startup.
 
 You can also download optional backup files (NBLC markdown or zip) to your computer when you choose.
 
