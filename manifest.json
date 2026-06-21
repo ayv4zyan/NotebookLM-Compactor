@@ -30,6 +30,7 @@
       "matches": ["https://notebooklm.google.com/*"],
       "js": [
         "lib/dom-html.js",
+        "lib/backup-zip-files.js",
         "lib/zip-blob.js",
         "lib/nblc-format.js",
         "lib/manifest-store.js",

@@ -26,6 +26,7 @@ jobs:
           node test/source-api.test.mjs
           node test/batchexecute-parse.test.mjs
           node test/zip-blob.test.mjs
+          node test/backup-zip-files.test.mjs
 
   lint:
     runs-on: ubuntu-latest

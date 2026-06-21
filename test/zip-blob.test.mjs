@@ -6,7 +6,7 @@ import assert from "node:assert/strict";
 import { createRequire } from "node:module";
 
 const require = createRequire(import.meta.url);
-const { createZipBlob } = require("../lib/zip-blob.js");
+const { createZipBlob, sanitizeUtf16 } = require("../lib/zip-blob.js");
 
 function findEndOfCentralDirectory(bytes) {
   const minEocd = 22;
@@ -143,5 +143,15 @@ const largeBlob = await createZipBlob({
 const largeBytes = Buffer.from(await largeBlob.arrayBuffer());
 assertLocalOffsetsMatchPayload(largeBytes);
 assert.equal(parseZipEntries(largeBytes).get("large.md"), largePayload);
+
+assert.equal(sanitizeUtf16("ok\uD800there"), "ok\uFFFDthere");
+assert.equal(sanitizeUtf16("low\uDC00only"), "low\uFFFDonly");
+assert.equal(sanitizeUtf16("emoji\uD83D\uDE00!"), "emoji\uD83D\uDE00!");
+
+const surrogateBlob = await createZipBlob({
+  "broken.md": "lone\uD800surrogate",
+});
+const surrogateBytes = Buffer.from(await surrogateBlob.arrayBuffer());
+assert.equal(parseZipEntries(surrogateBytes).get("broken.md"), "lone\uFFFDsurrogate");
 
 console.log("zip-blob.test.mjs: OK");

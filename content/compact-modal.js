@@ -1,5 +1,7 @@
 (function () {
-  const { api, format, store, modalA11y, runtimeMessaging, domHtml, zipBlob } = window.NBLC;
+  const { api, format, store, modalA11y, runtimeMessaging, domHtml, zipBlob, backupZipFiles } =
+    window.NBLC;
+  const { sanitizeFilename, buildBackupZipFileMap } = backupZipFiles;
   const { replaceHtml } = domHtml;
   const { isCheckboxActionElement, setModalVisible } = modalA11y;
 
@@ -57,17 +59,6 @@
     errorMessage: "",
     loadProgress: { current: 0, total: 0, status: "" },
   };
-
-  function sanitizeFilename(title) {
-    return (
-      title
-        .replace(/[<>:"/\\|?*]/g, "_")
-        .replace(/\s+/g, "_")
-        .replace(/_+/g, "_")
-        .replace(/^_|_$/g, "")
-        .substring(0, 100) || "untitled"
-    );
-  }
 
   function sendSourceApi(body) {
     return runtimeMessaging.sendSourceApi(body);
@@ -188,30 +179,11 @@
     if (!result) return false;
 
     try {
-      const files = {};
-      const usedNames = new Set();
-
-      for (const src of result.sources) {
-        let baseName = sanitizeFilename(src.title);
-        let name = baseName;
-        let counter = 1;
-        while (usedNames.has(name)) {
-          name = `${baseName}_${counter}`;
-          counter++;
-        }
-        usedNames.add(name);
-        files[`${name}.md`] = `# ${src.title}\n\n${src.content}`;
-      }
-
-      let compactName = sanitizeFilename(result.compactedTitle);
-      const baseCompactName = compactName;
-      let compactCounter = 1;
-      while (usedNames.has(compactName)) {
-        compactName = `${baseCompactName}_${compactCounter}`;
-        compactCounter++;
-      }
-      usedNames.add(compactName);
-      files[`${compactName}.md`] = result.compactedContent;
+      const files = buildBackupZipFileMap(
+        result.sources,
+        result.compactedTitle,
+        result.compactedContent
+      );
 
       const blob = await zipBlob.createZipBlob(files);
       const date = new Date().toISOString().split("T")[0];
