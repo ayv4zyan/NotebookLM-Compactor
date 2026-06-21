@@ -1,5 +1,6 @@
 (function () {
-  const { consent, modalA11y } = window.NBLC;
+  const { consent, modalA11y, domHtml } = window.NBLC;
+  const { replaceHtml } = domHtml;
   const { isCheckboxActionElement, setModalVisible } = modalA11y;
 
   let overlay = null;
@@ -66,7 +67,7 @@
     const bodyEl = overlay.querySelector(".nblc-modal-body");
     if (!bodyEl) return;
 
-    bodyEl.innerHTML = renderBody();
+    replaceHtml(bodyEl, renderBody());
     a11y?.afterRender();
   }
 

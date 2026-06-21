@@ -1,5 +1,6 @@
 (function () {
-  const { api, format, store, modalA11y, runtimeMessaging } = window.NBLC;
+  const { api, format, store, modalA11y, runtimeMessaging, domHtml } = window.NBLC;
+  const { replaceHtml } = domHtml;
   const { isCheckboxActionElement, setModalVisible } = modalA11y;
 
   const PHASE = {
@@ -451,7 +452,7 @@
     const closeBtn = overlay.querySelector(".nblc-close-btn");
     if (!bodyEl) return;
 
-    bodyEl.innerHTML = body;
+    replaceHtml(bodyEl, body);
 
     if (closeBtn) {
       closeBtn.disabled = isBusy();

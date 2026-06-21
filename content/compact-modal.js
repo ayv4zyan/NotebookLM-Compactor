@@ -1,5 +1,8 @@
 (function () {
-  const { api, format, store, modalA11y, runtimeMessaging } = window.NBLC;
+  const { api, format, store, modalA11y, runtimeMessaging, domHtml, zipBlob, backupZipFiles } =
+    window.NBLC;
+  const { sanitizeFilename, buildBackupZipFileMap } = backupZipFiles;
+  const { replaceHtml } = domHtml;
   const { isCheckboxActionElement, setModalVisible } = modalA11y;
 
 
@@ -56,17 +59,6 @@
     errorMessage: "",
     loadProgress: { current: 0, total: 0, status: "" },
   };
-
-  function sanitizeFilename(title) {
-    return (
-      title
-        .replace(/[<>:"/\\|?*]/g, "_")
-        .replace(/\s+/g, "_")
-        .replace(/_+/g, "_")
-        .replace(/^_|_$/g, "")
-        .substring(0, 100) || "untitled"
-    );
-  }
 
   function sendSourceApi(body) {
     return runtimeMessaging.sendSourceApi(body);
@@ -169,32 +161,39 @@
     triggerBlobDownload(blob, filename);
   }
 
-  async function downloadBackupZipFile() {
+  const BACKUP_ZIP_FAIL_WARNING =
+    "Backup zip download failed. Your compact succeeded — use Download backup zip below to retry.";
+
+  function noteBackupZipFailure() {
     if (!result) return;
-
-    const zip = new JSZip();
-    const usedNames = new Set();
-
-    for (const src of result.sources) {
-      let baseName = sanitizeFilename(src.title);
-      let name = baseName;
-      let counter = 1;
-      while (usedNames.has(name)) {
-        name = `${baseName}_${counter}`;
-        counter++;
-      }
-      usedNames.add(name);
-      zip.file(`${name}.md`, `# ${src.title}\n\n${src.content}`);
+    result.warnings = result.warnings || [];
+    if (!result.warnings.includes(BACKUP_ZIP_FAIL_WARNING)) {
+      result.warnings.push(BACKUP_ZIP_FAIL_WARNING);
     }
+    if (phase === PHASE.SUCCESS) {
+      render();
+    }
+  }
 
-    zip.file(
-      `${sanitizeFilename(result.compactedTitle)}.md`,
-      result.compactedContent
-    );
+  async function downloadBackupZipFile() {
+    if (!result) return false;
 
-    const blob = await zip.generateAsync({ type: "blob" });
-    const date = new Date().toISOString().split("T")[0];
-    triggerBlobDownload(blob, `nblc-backup-${date}.zip`);
+    try {
+      const files = buildBackupZipFileMap(
+        result.sources,
+        result.compactedTitle,
+        result.compactedContent
+      );
+
+      const blob = await zipBlob.createZipBlob(files);
+      const date = new Date().toISOString().split("T")[0];
+      triggerBlobDownload(blob, `nblc-backup-${date}.zip`);
+      return true;
+    } catch (error) {
+      console.error("[CompactModal] Backup zip download failed:", error);
+      noteBackupZipFailure();
+      return false;
+    }
   }
 
   async function runCompact() {
@@ -1365,7 +1364,7 @@
     const closeBtn = overlay.querySelector(".nblc-close-btn");
     if (!bodyEl) return;
 
-    bodyEl.innerHTML = body;
+    replaceHtml(bodyEl, body);
 
     if (closeBtn) {
       closeBtn.disabled = isBusy();
@@ -1488,7 +1487,7 @@
     requestAnimationFrame(() => render());
   }
 
-  function handleClick(event) {
+  async function handleClick(event) {
     event.stopPropagation();
 
     const target = resolveActionTarget(event);
@@ -1559,7 +1558,7 @@
         downloadNblcFile();
         break;
       case "download-zip":
-        downloadBackupZipFile();
+        await downloadBackupZipFile();
         break;
       case "retry":
         errorMessage = "";
