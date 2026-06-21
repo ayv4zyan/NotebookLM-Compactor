@@ -86,4 +86,12 @@ const utf8Bytes = Buffer.from(await utf8Blob.arrayBuffer());
 const utf8Entries = parseZipEntries(utf8Bytes);
 assert.equal(utf8Entries.get("café.md"), "# Café\n\ncontenu");
 
+const emptyBlob = await createZipBlob({});
+assert.equal(Buffer.from(await emptyBlob.arrayBuffer()).length, 22);
+
+await assert.rejects(
+  () => createZipBlob(null),
+  /expects a plain object/
+);
+
 console.log("zip-blob.test.mjs: OK");

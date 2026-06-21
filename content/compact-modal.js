@@ -173,34 +173,38 @@
   async function downloadBackupZipFile() {
     if (!result) return;
 
-    const files = {};
-    const usedNames = new Set();
+    try {
+      const files = {};
+      const usedNames = new Set();
 
-    for (const src of result.sources) {
-      let baseName = sanitizeFilename(src.title);
-      let name = baseName;
-      let counter = 1;
-      while (usedNames.has(name)) {
-        name = `${baseName}_${counter}`;
-        counter++;
+      for (const src of result.sources) {
+        let baseName = sanitizeFilename(src.title);
+        let name = baseName;
+        let counter = 1;
+        while (usedNames.has(name)) {
+          name = `${baseName}_${counter}`;
+          counter++;
+        }
+        usedNames.add(name);
+        files[`${name}.md`] = `# ${src.title}\n\n${src.content}`;
       }
-      usedNames.add(name);
-      files[`${name}.md`] = `# ${src.title}\n\n${src.content}`;
-    }
 
-    let compactName = sanitizeFilename(result.compactedTitle);
-    const baseCompactName = compactName;
-    let compactCounter = 1;
-    while (usedNames.has(compactName)) {
-      compactName = `${baseCompactName}_${compactCounter}`;
-      compactCounter++;
-    }
-    usedNames.add(compactName);
-    files[`${compactName}.md`] = result.compactedContent;
+      let compactName = sanitizeFilename(result.compactedTitle);
+      const baseCompactName = compactName;
+      let compactCounter = 1;
+      while (usedNames.has(compactName)) {
+        compactName = `${baseCompactName}_${compactCounter}`;
+        compactCounter++;
+      }
+      usedNames.add(compactName);
+      files[`${compactName}.md`] = result.compactedContent;
 
-    const blob = await zipBlob.createZipBlob(files);
-    const date = new Date().toISOString().split("T")[0];
-    triggerBlobDownload(blob, `nblc-backup-${date}.zip`);
+      const blob = await zipBlob.createZipBlob(files);
+      const date = new Date().toISOString().split("T")[0];
+      triggerBlobDownload(blob, `nblc-backup-${date}.zip`);
+    } catch (error) {
+      console.error("[CompactModal] Backup zip download failed:", error);
+    }
   }
 
   async function runCompact() {
