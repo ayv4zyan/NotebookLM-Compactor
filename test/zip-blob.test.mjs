@@ -25,6 +25,30 @@ function findEndOfCentralDirectory(bytes) {
   throw new Error("EOCD record not found");
 }
 
+function assertCentralFileHeader(view, centralOffset, name) {
+  assert.equal(view.getUint32(centralOffset, true), 0x02014b50);
+  const gpbf = view.getUint16(centralOffset + 8, true);
+  const method = view.getUint16(centralOffset + 10, true);
+  assert.equal(method, 0, `expected stored central method for ${name}`);
+  if (/[^\x00-\x7f]/.test(name)) {
+    assert.equal(gpbf & 0x0800, 0x0800, `expected UTF-8 GPBF in central header for ${name}`);
+  } else {
+    assert.equal(gpbf & 0x0800, 0, `expected no UTF-8 GPBF in central header for ASCII ${name}`);
+  }
+}
+
+function assertLocalFileHeader(view, localOffset, name) {
+  assert.equal(view.getUint32(localOffset, true), 0x04034b50);
+  const gpbf = view.getUint16(localOffset + 6, true);
+  const method = view.getUint16(localOffset + 8, true);
+  assert.equal(method, 0, `expected stored local method for ${name}`);
+  if (/[^\x00-\x7f]/.test(name)) {
+    assert.equal(gpbf & 0x0800, 0x0800, `expected UTF-8 GPBF in local header for ${name}`);
+  } else {
+    assert.equal(gpbf & 0x0800, 0, `expected no UTF-8 GPBF in local header for ASCII ${name}`);
+  }
+}
+
 function parseZipEntries(bytes) {
   const eocdOffset = findEndOfCentralDirectory(bytes);
   const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
@@ -34,9 +58,6 @@ function parseZipEntries(bytes) {
   let offset = centralOffset;
 
   for (let i = 0; i < entryCount; i++) {
-    assert.equal(view.getUint32(offset, true), 0x02014b50);
-    const gpbf = view.getUint16(offset + 8, true);
-    const method = view.getUint16(offset + 10, true);
     const compressedSize = view.getUint32(offset + 20, true);
     const nameLength = view.getUint16(offset + 28, true);
     const extraLength = view.getUint16(offset + 30, true);
@@ -45,22 +66,9 @@ function parseZipEntries(bytes) {
     const nameBytes = bytes.subarray(offset + 46, offset + 46 + nameLength);
     const name = new TextDecoder().decode(nameBytes);
 
-    assert.equal(method, 0, `expected stored entry for ${name}`);
-    if (/[^\x00-\x7f]/.test(name)) {
-      assert.equal(gpbf & 0x0800, 0x0800, `expected UTF-8 GPBF for ${name}`);
-    } else {
-      assert.equal(gpbf & 0x0800, 0, `expected no UTF-8 GPBF for ASCII ${name}`);
-    }
+    assertCentralFileHeader(view, offset, name);
+    assertLocalFileHeader(view, localOffset, name);
 
-    assert.equal(view.getUint32(localOffset, true), 0x04034b50);
-    const localGpbf = view.getUint16(localOffset + 6, true);
-    const localMethod = view.getUint16(localOffset + 8, true);
-    assert.equal(localMethod, 0, `expected stored local method for ${name}`);
-    if (/[^\x00-\x7f]/.test(name)) {
-      assert.equal(localGpbf & 0x0800, 0x0800, `expected UTF-8 GPBF in local header for ${name}`);
-    } else {
-      assert.equal(localGpbf & 0x0800, 0, `expected no UTF-8 GPBF in local header for ASCII ${name}`);
-    }
     const localNameLength = view.getUint16(localOffset + 26, true);
     const localExtraLength = view.getUint16(localOffset + 28, true);
     const dataOffset = localOffset + 30 + localNameLength + localExtraLength;
@@ -118,6 +126,11 @@ const utf8Blob = await createZipBlob({
   "café.md": "# Café\n\ncontenu",
 });
 const utf8Bytes = Buffer.from(await utf8Blob.arrayBuffer());
+const utf8View = new DataView(utf8Bytes.buffer, utf8Bytes.byteOffset, utf8Bytes.byteLength);
+const utf8Eocd = findEndOfCentralDirectory(utf8Bytes);
+const utf8CentralOffset = utf8View.getUint32(utf8Eocd + 16, true);
+assertLocalFileHeader(utf8View, 0, "café.md");
+assertCentralFileHeader(utf8View, utf8CentralOffset, "café.md");
 const utf8Entries = parseZipEntries(utf8Bytes);
 assert.equal(utf8Entries.get("café.md"), "# Café\n\ncontenu");
 
