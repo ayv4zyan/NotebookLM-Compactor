@@ -53,6 +53,14 @@ function parseZipEntries(bytes) {
     }
 
     assert.equal(view.getUint32(localOffset, true), 0x04034b50);
+    const localGpbf = view.getUint16(localOffset + 6, true);
+    const localMethod = view.getUint16(localOffset + 8, true);
+    assert.equal(localMethod, 0, `expected stored local method for ${name}`);
+    if (/[^\x00-\x7f]/.test(name)) {
+      assert.equal(localGpbf & 0x0800, 0x0800, `expected UTF-8 GPBF in local header for ${name}`);
+    } else {
+      assert.equal(localGpbf & 0x0800, 0, `expected no UTF-8 GPBF in local header for ASCII ${name}`);
+    }
     const localNameLength = view.getUint16(localOffset + 26, true);
     const localExtraLength = view.getUint16(localOffset + 28, true);
     const dataOffset = localOffset + 30 + localNameLength + localExtraLength;
