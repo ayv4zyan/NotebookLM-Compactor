@@ -75,6 +75,7 @@ Buttons appear only on `notebooklm.google.com` — there is no toolbar popup.
 | **Compact deletes originals** | After a successful upload there is no undo. Enable **"Also download backup zip on success"** in the Compact modal, or download the NBLC / backup zip manually before proceeding. |
 | **Source count / bundle size** | Compact fetches your account source limit and shows `current / limit` (count-only fallback if unavailable); very large merges are untested at scale. |
 | **Storage** | `browser.storage.local` holds a temporary rollback buffer during operations only; cleared on success. |
+| **Backup zip size** | Optional backup zips use uncompressed stored entries (no DEFLATE) for AMO auditability. Archives are larger than the previous JSZip output but fine for typical markdown exports. |
 
 ## Troubleshooting
 

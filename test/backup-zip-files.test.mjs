@@ -41,4 +41,20 @@ assert.deepEqual(Object.keys(compactCollision).sort(), ["Report.md", "Report_1.m
 assert.equal(compactCollision["Report.md"], "# Report\n\nsrc");
 assert.equal(compactCollision["Report_1.md"], "bundle");
 
+const nullSources = buildBackupZipFileMap(null, "Only", "solo");
+assert.deepEqual(Object.keys(nullSources), ["Only.md"]);
+assert.equal(nullSources["Only.md"], "solo");
+
+const badSources = buildBackupZipFileMap("not-an-array", "Only", "solo");
+assert.deepEqual(Object.keys(badSources), ["Only.md"]);
+
+const sparseMap = buildBackupZipFileMap(
+  [null, { title: "T" }, { content: "body" }, { title: "Full", content: "ok" }],
+  "Bundle",
+  "out"
+);
+assert.deepEqual(Object.keys(sparseMap).sort(), ["Bundle.md", "Full.md", "T.md", "untitled.md"]);
+assert.equal(sparseMap["T.md"], "# T\n\n");
+assert.equal(sparseMap["untitled.md"], "# \n\nbody");
+
 console.log("backup-zip-files.test.mjs: OK");

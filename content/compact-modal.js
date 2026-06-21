@@ -1487,7 +1487,7 @@
     requestAnimationFrame(() => render());
   }
 
-  function handleClick(event) {
+  async function handleClick(event) {
     event.stopPropagation();
 
     const target = resolveActionTarget(event);
@@ -1558,7 +1558,7 @@
         downloadNblcFile();
         break;
       case "download-zip":
-        downloadBackupZipFile();
+        await downloadBackupZipFile();
         break;
       case "retry":
         errorMessage = "";

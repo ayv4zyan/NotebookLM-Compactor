@@ -178,4 +178,14 @@ const surrogateBlob = await createZipBlob({
 const surrogateBytes = Buffer.from(await surrogateBlob.arrayBuffer());
 assert.equal(parseZipEntries(surrogateBytes).get("broken.md"), "lone\uFFFDsurrogate");
 
+const emoji = "\uD83D\uDE00";
+const boundaryPayload = "a".repeat(64 * 1024 - 1) + emoji;
+assert.equal(boundaryPayload.length, 64 * 1024 + 1);
+assert.equal(boundaryPayload.charCodeAt(64 * 1024 - 1), 0xd83d);
+const boundaryBlob = await createZipBlob({ "boundary.md": boundaryPayload });
+const boundaryBytes = Buffer.from(await boundaryBlob.arrayBuffer());
+const boundaryRoundTrip = parseZipEntries(boundaryBytes).get("boundary.md");
+assert.equal(boundaryRoundTrip, boundaryPayload);
+assert.ok(!boundaryRoundTrip.includes("\uFFFD"), "surrogate pair must not be split at chunk boundary");
+
 console.log("zip-blob.test.mjs: OK");
