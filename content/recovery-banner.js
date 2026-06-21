@@ -1,5 +1,6 @@
 (function () {
-  const { api, store } = window.NBLC;
+  const { api, store, domHtml } = window.NBLC;
+  const { replaceHtml } = domHtml;
 
   const DOM = {
     SOURCE_PANEL: ".source-panel",
@@ -136,12 +137,12 @@
 
     if (items.length === 0) {
       root.style.display = "none";
-      root.innerHTML = "";
+      replaceHtml(root);
       return;
     }
 
     root.style.display = "block";
-    root.innerHTML = items.join("");
+    replaceHtml(root, items.join(""));
   }
 
   async function refresh() {

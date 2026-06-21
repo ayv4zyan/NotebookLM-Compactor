@@ -1,5 +1,6 @@
 (function () {
-  const { api, format, store, modalA11y, runtimeMessaging } = window.NBLC;
+  const { api, format, store, modalA11y, runtimeMessaging, domHtml, zipBlob } = window.NBLC;
+  const { replaceHtml } = domHtml;
   const { isCheckboxActionElement, setModalVisible } = modalA11y;
 
 
@@ -172,7 +173,7 @@
   async function downloadBackupZipFile() {
     if (!result) return;
 
-    const zip = new JSZip();
+    const files = {};
     const usedNames = new Set();
 
     for (const src of result.sources) {
@@ -184,15 +185,12 @@
         counter++;
       }
       usedNames.add(name);
-      zip.file(`${name}.md`, `# ${src.title}\n\n${src.content}`);
+      files[`${name}.md`] = `# ${src.title}\n\n${src.content}`;
     }
 
-    zip.file(
-      `${sanitizeFilename(result.compactedTitle)}.md`,
-      result.compactedContent
-    );
+    files[`${sanitizeFilename(result.compactedTitle)}.md`] = result.compactedContent;
 
-    const blob = await zip.generateAsync({ type: "blob" });
+    const blob = zipBlob.createZipBlob(files);
     const date = new Date().toISOString().split("T")[0];
     triggerBlobDownload(blob, `nblc-backup-${date}.zip`);
   }
@@ -1365,7 +1363,7 @@
     const closeBtn = overlay.querySelector(".nblc-close-btn");
     if (!bodyEl) return;
 
-    bodyEl.innerHTML = body;
+    replaceHtml(bodyEl, body);
 
     if (closeBtn) {
       closeBtn.disabled = isBusy();

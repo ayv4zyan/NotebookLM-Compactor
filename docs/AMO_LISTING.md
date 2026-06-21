@@ -90,11 +90,11 @@ Recommended size: 1280×800 or 640×400. No Google trademarks presented as if en
 
 Extension injects UI only on `notebooklm.google.com`. User modal actions trigger `batchexecute` requests from the content script (session cookies). Opening Compact performs one read-only account-settings request (`GET_USER_SETTINGS`) to display the user's per-notebook source limit; no background polling. Firefox uses MV3 `background.scripts` event page for storage sweep; Chrome uses `background.service_worker`. Delete operations require two explicit checkbox confirmations plus first-run Terms acceptance. See `SECURITY.md` and `PRIVACY.md` in the repository.
 
-Firefox 128+. Uses `chrome.*` namespace (supported natively in Firefox). No remote code execution. Build step bundles source with esbuild before release.
+Firefox 142+ (`strict_min_version` for `data_collection_permissions`). Uses `chrome.*` namespace (supported natively in Firefox). No remote code execution. Build step bundles source with esbuild before release.
 
 ## Source code submission
 
-Required because `vendor/jszip.min.js` is minified third-party code listed in `manifest.json` `content_scripts` and used for optional backup zip downloads in `content/compact-modal.js`.
+Optional backup zips are built client-side by first-party `lib/zip-blob.js` (no vendored minified libraries in `content_scripts`).
 
 | Deliverable | Detail |
 |-------------|--------|
@@ -106,7 +106,7 @@ node scripts/build-extension.mjs
 (cd dist/firefox && zip -r ../../notebooklm-compactor-firefox.zip .)
 ```
 
-| **Third-party library** | [Stuk/jszip](https://github.com/Stuk/jszip) — `vendor/jszip.min.js` **v3.10.1**; client-side backup zip only |
-| **Reviewer statement** | No remote code; author bundles via esbuild at build time; only vendored JSZip is third-party minified |
+| **Third-party library** | None in content scripts (backup zip uses first-party `lib/zip-blob.js`) |
+| **Reviewer statement** | No remote code; author bundles background/content API with esbuild at build time |
 
 Submit `notebooklm-compactor-firefox.zip` to AMO. Chrome Web Store uses `notebooklm-compactor-chrome.zip` (separate manifest background field).
