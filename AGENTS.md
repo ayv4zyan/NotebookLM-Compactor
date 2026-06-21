@@ -44,9 +44,10 @@ node test/rpc-parse.test.mjs
 node test/source-api.test.mjs
 node test/batchexecute-parse.test.mjs
 node test/zip-blob.test.mjs
+node test/backup-zip-files.test.mjs
 ```
 
-CI runs build + all five tests on every push/PR to `main`.
+CI runs build + all six tests on every push/PR to `main`.
 
 ## Git workflow
 
