@@ -95,9 +95,12 @@ function assertLocalOffsetsMatchPayload(bytes) {
     const nameLength = view.getUint16(offset + 28, true);
     const extraLength = view.getUint16(offset + 30, true);
     const commentLength = view.getUint16(offset + 32, true);
+    const nameBytes = bytes.subarray(offset + 46, offset + 46 + nameLength);
+    const name = new TextDecoder().decode(nameBytes);
 
     assert.equal(localOffset, expectedLocalOffset, `entry ${i} local offset`);
-    assert.equal(view.getUint32(localOffset, true), 0x04034b50);
+    assertCentralFileHeader(view, offset, name);
+    assertLocalFileHeader(view, localOffset, name);
 
     const localNameLength = view.getUint16(localOffset + 26, true);
     const localExtraLength = view.getUint16(localOffset + 28, true);
