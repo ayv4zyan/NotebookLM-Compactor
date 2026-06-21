@@ -65,6 +65,33 @@ function parseZipEntries(bytes) {
   return entries;
 }
 
+function assertLocalOffsetsMatchPayload(bytes) {
+  const eocdOffset = findEndOfCentralDirectory(bytes);
+  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  const centralOffset = view.getUint32(eocdOffset + 16, true);
+  const entryCount = view.getUint16(eocdOffset + 10, true);
+  let offset = centralOffset;
+  let expectedLocalOffset = 0;
+
+  for (let i = 0; i < entryCount; i++) {
+    const localOffset = view.getUint32(offset + 42, true);
+    const compressedSize = view.getUint32(offset + 20, true);
+    const nameLength = view.getUint16(offset + 28, true);
+    const extraLength = view.getUint16(offset + 30, true);
+    const commentLength = view.getUint16(offset + 32, true);
+
+    assert.equal(localOffset, expectedLocalOffset, `entry ${i} local offset`);
+    assert.equal(view.getUint32(localOffset, true), 0x04034b50);
+
+    const localNameLength = view.getUint16(localOffset + 26, true);
+    const localExtraLength = view.getUint16(localOffset + 28, true);
+    const dataOffset = localOffset + 30 + localNameLength + localExtraLength;
+    expectedLocalOffset = dataOffset + compressedSize;
+
+    offset += 46 + nameLength + extraLength + commentLength;
+  }
+}
+
 const blob = await createZipBlob({
   "alpha.md": "# Alpha\n\none",
   "beta.md": "# Beta\n\ntwo",
@@ -93,5 +120,28 @@ await assert.rejects(
   () => createZipBlob(null),
   /expects a plain object/
 );
+
+const manyFiles = {};
+for (let i = 0; i < 15; i++) {
+  manyFiles[`entry-${String(i).padStart(2, "0")}.md`] = `# Entry ${i}\n\n${"x".repeat(100 + i)}`;
+}
+const manyBlob = await createZipBlob(manyFiles);
+const manyBytes = Buffer.from(await manyBlob.arrayBuffer());
+const manyEntries = parseZipEntries(manyBytes);
+assert.equal(manyEntries.size, 15);
+assertLocalOffsetsMatchPayload(manyBytes);
+for (let i = 0; i < 15; i++) {
+  const key = `entry-${String(i).padStart(2, "0")}.md`;
+  assert.equal(manyEntries.get(key), manyFiles[key]);
+}
+
+const largePayload = "z".repeat(200 * 1024);
+const largeBlob = await createZipBlob({
+  "large.md": largePayload,
+  "tail.md": "end",
+});
+const largeBytes = Buffer.from(await largeBlob.arrayBuffer());
+assertLocalOffsetsMatchPayload(largeBytes);
+assert.equal(parseZipEntries(largeBytes).get("large.md"), largePayload);
 
 console.log("zip-blob.test.mjs: OK");

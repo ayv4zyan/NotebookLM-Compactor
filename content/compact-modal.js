@@ -170,8 +170,22 @@
     triggerBlobDownload(blob, filename);
   }
 
-  async function downloadBackupZipFile() {
+  const BACKUP_ZIP_FAIL_WARNING =
+    "Backup zip download failed. Your compact succeeded — use Download backup zip below to retry.";
+
+  function noteBackupZipFailure() {
     if (!result) return;
+    result.warnings = result.warnings || [];
+    if (!result.warnings.includes(BACKUP_ZIP_FAIL_WARNING)) {
+      result.warnings.push(BACKUP_ZIP_FAIL_WARNING);
+    }
+    if (phase === PHASE.SUCCESS) {
+      render();
+    }
+  }
+
+  async function downloadBackupZipFile() {
+    if (!result) return false;
 
     try {
       const files = {};
@@ -202,8 +216,11 @@
       const blob = await zipBlob.createZipBlob(files);
       const date = new Date().toISOString().split("T")[0];
       triggerBlobDownload(blob, `nblc-backup-${date}.zip`);
+      return true;
     } catch (error) {
       console.error("[CompactModal] Backup zip download failed:", error);
+      noteBackupZipFailure();
+      return false;
     }
   }
 
