@@ -21,15 +21,24 @@ jobs:
       - name: Build browser-specific extension trees
         run: node scripts/build-extension.mjs
 
+      - name: Set release version
+        id: version
+        run: echo "semver=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+
       - name: Build extension zips
+        id: zips
         run: |
-          (cd dist/chrome && zip -r ../../notebooklm-compactor-chrome.zip .)
-          (cd dist/firefox && zip -r ../../notebooklm-compactor-firefox.zip .)
+          chrome_zip="notebooklm-compactor-chrome-${{ steps.version.outputs.semver }}.zip"
+          firefox_zip="notebooklm-compactor-firefox-${{ steps.version.outputs.semver }}.zip"
+          (cd dist/chrome && zip -r "../../${chrome_zip}" .)
+          (cd dist/firefox && zip -r "../../${firefox_zip}" .)
+          echo "chrome_zip=${chrome_zip}" >> "$GITHUB_OUTPUT"
+          echo "firefox_zip=${firefox_zip}" >> "$GITHUB_OUTPUT"
 
       - name: Publish GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            notebooklm-compactor-chrome.zip
-            notebooklm-compactor-firefox.zip
+            ${{ steps.zips.outputs.chrome_zip }}
+            ${{ steps.zips.outputs.firefox_zip }}
           generate_release_notes: true
