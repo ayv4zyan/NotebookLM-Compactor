@@ -46,7 +46,11 @@ function parseZipEntries(bytes) {
     const name = new TextDecoder().decode(nameBytes);
 
     assert.equal(method, 0, `expected stored entry for ${name}`);
-    assert.equal(gpbf & 0x0800, 0x0800, `expected UTF-8 GPBF for ${name}`);
+    if (/[^\x00-\x7f]/.test(name)) {
+      assert.equal(gpbf & 0x0800, 0x0800, `expected UTF-8 GPBF for ${name}`);
+    } else {
+      assert.equal(gpbf & 0x0800, 0, `expected no UTF-8 GPBF for ASCII ${name}`);
+    }
 
     assert.equal(view.getUint32(localOffset, true), 0x04034b50);
     const localNameLength = view.getUint16(localOffset + 26, true);

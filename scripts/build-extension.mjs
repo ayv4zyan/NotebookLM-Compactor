@@ -14,7 +14,6 @@ const COPY_PATHS = [
   "background",
   "content",
   "lib",
-  "vendor",
   "icons",
   "LICENSE",
   "TERMS.md",
