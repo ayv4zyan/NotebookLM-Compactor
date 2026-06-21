@@ -188,9 +188,17 @@
       files[`${name}.md`] = `# ${src.title}\n\n${src.content}`;
     }
 
-    files[`${sanitizeFilename(result.compactedTitle)}.md`] = result.compactedContent;
+    let compactName = sanitizeFilename(result.compactedTitle);
+    const baseCompactName = compactName;
+    let compactCounter = 1;
+    while (usedNames.has(compactName)) {
+      compactName = `${baseCompactName}_${compactCounter}`;
+      compactCounter++;
+    }
+    usedNames.add(compactName);
+    files[`${compactName}.md`] = result.compactedContent;
 
-    const blob = zipBlob.createZipBlob(files);
+    const blob = await zipBlob.createZipBlob(files);
     const date = new Date().toISOString().split("T")[0];
     triggerBlobDownload(blob, `nblc-backup-${date}.zip`);
   }

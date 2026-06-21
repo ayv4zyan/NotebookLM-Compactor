@@ -114,9 +114,10 @@ node test/nblc-format.test.js
 node test/rpc-parse.test.mjs
 node test/source-api.test.mjs
 node test/batchexecute-parse.test.mjs
+node test/zip-blob.test.mjs
 ```
 
-CI runs build + all four tests on every push and pull request to `main`.
+CI runs build + all five tests on every push and pull request to `main`.
 
 ### Cutting a release
 
