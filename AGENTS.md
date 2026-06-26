@@ -14,7 +14,7 @@ Quick entry point for AI coding agents. **Full design lives in [CONTEXT.md](./CO
 | **4** | ✅ Done | Smart URL/YouTube restore; dynamic `bl` extraction; YouTube URL capture fix |
 | **5** | ✅ Done | Public-ready docs, consent gates, destructive confirmations, `SECURITY.md` |
 
-**Extension version:** `1.0.0` (manifest) · **Latest tag:** `v1.0.0` · **GitHub:** `ayv4zyan/NotebookLM-Compactor`
+**Extension version:** `1.0.2` (manifest) · **Firefox AMO:** [notebooklm-compactor](https://addons.mozilla.org/firefox/addon/notebooklm-compactor/) · **GitHub:** `ayv4zyan/NotebookLM-Compactor`
 
 ## Before you code
 

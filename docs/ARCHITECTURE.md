@@ -14,7 +14,7 @@ NotebookLM Compactor targets **Chrome/Chromium** and **Firefox ≥ 128** from a 
 | **NBLC portability** | Cross-browser and cross-machine — restore metadata lives in uploaded markdown, not extension storage |
 | **Firefox QA** | Passed — sign-off in [MANUAL_TEST_CHECKLIST.md](./MANUAL_TEST_CHECKLIST.md) (2026-06-20). Stable release `v1.0.0` tagged. |
 
-User install paths: [FIREFOX.md](./FIREFOX.md) (Firefox), [README.md](../README.md#install) (Chrome).
+User install paths: [AMO listing](https://addons.mozilla.org/firefox/addon/notebooklm-compactor/) / [FIREFOX.md](./FIREFOX.md) (Firefox), [README.md](../README.md#install) (Chrome).
 
 ## System context
 

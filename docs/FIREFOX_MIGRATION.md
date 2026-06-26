@@ -108,7 +108,7 @@ AMO review is **not** a gate for the GitHub tag. Tag first; submit after.
 5. Paste listing copy from [AMO_LISTING.md](./AMO_LISTING.md).
 6. Set privacy policy URL to `PRIVACY.md` on GitHub (same as Chrome Web Store).
 7. Submit for review; respond to reviewer questions (allow days–weeks).
-8. After approval: update [FIREFOX.md](./FIREFOX.md) with the live AMO URL (follow-up commit/PR).
+8. ~~After approval: update [FIREFOX.md](./FIREFOX.md) with the live AMO URL~~ ✅ Done — [addons.mozilla.org/firefox/addon/notebooklm-compactor](https://addons.mozilla.org/firefox/addon/notebooklm-compactor/)
 
 **Signing:** AMO signs the uploaded zip on approval. No separate `web-ext sign` step is required unless you choose a self-hosted distribution channel.
 
@@ -132,7 +132,7 @@ node scripts/build-extension.mjs
 
 ### 5. Post-approval URL update
 
-Update [FIREFOX.md](./FIREFOX.md) with the live AMO listing URL (follow-up commit/PR).
+✅ **Done (2026-06-21).** Live listing: [addons.mozilla.org/firefox/addon/notebooklm-compactor](https://addons.mozilla.org/firefox/addon/notebooklm-compactor/). Linked from [FIREFOX.md](./FIREFOX.md) and [README.md](../README.md).
 
 ### 6. Chrome Web Store (optional)
 

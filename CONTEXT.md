@@ -297,4 +297,4 @@ NotebookLM Compactor/              # parent workspace (not a git repo)
 
 ## Next steps for agent
 
-Dual-browser code, manual QA, and stable release `v1.0.0` are complete on `main`. Remaining maintainer actions: make repo public, submit AMO + optional Chrome Web Store ([docs/FIREFOX_MIGRATION.md](./docs/FIREFOX_MIGRATION.md)). Open research: stress-test 30+ long transcripts at scale.
+Dual-browser code, manual QA, and stable release `v1.0.0` are complete on `main`. **AMO listing live** at [addons.mozilla.org/firefox/addon/notebooklm-compactor](https://addons.mozilla.org/firefox/addon/notebooklm-compactor/) (v1.0.2, approved 2026-06-21). Remaining maintainer action: optional Chrome Web Store ([docs/FIREFOX_MIGRATION.md](./docs/FIREFOX_MIGRATION.md)). Open research: stress-test 30+ long transcripts at scale.

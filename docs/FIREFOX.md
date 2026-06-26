@@ -12,15 +12,12 @@ End-user guide for installing and using NotebookLM Compactor in Firefox.
 | **NotebookLM account** | Logged into [notebooklm.google.com](https://notebooklm.google.com) in the same Firefox profile |
 | **Network** | Access to `notebooklm.google.com` (extension does not call other hosts) |
 
-## Install from AMO (recommended when available)
+## Install from AMO (recommended)
 
-Once the listing is approved, install from Mozilla Add-ons:
+Install from **[Mozilla Add-ons](https://addons.mozilla.org/firefox/addon/notebooklm-compactor/)**:
 
-> **Placeholder:** `https://addons.mozilla.org/en-US/firefox/addon/notebooklm-compactor/`  
-> This URL will be updated after AMO approval. Until then, use a release zip or temporary load below.
-
-1. Open the AMO listing URL above.
-2. Click **Add to Firefox** and confirm the permission prompt.
+1. Open the listing and click **Add to Firefox**.
+2. Confirm the permission prompt.
 3. Open [notebooklm.google.com](https://notebooklm.google.com) — Compact and Decompact buttons appear in the source panel when you select sources.
 
 AMO-signed installs persist across browser restarts (unlike temporary loads).
@@ -35,7 +32,7 @@ Firefox needs a different background manifest than Chrome (`background.scripts` 
 4. Click **This Firefox** (left sidebar).
 5. Click **Load Temporary Add-on…** and select `manifest.json` inside the unzipped folder.
 
-> **Note:** Temporary add-ons are removed when Firefox restarts. Re-load from `about:debugging` after each restart, or install from AMO once the listing is live.
+> **Note:** Temporary add-ons are removed when Firefox restarts. Re-load from `about:debugging` after each restart, or install from [AMO](https://addons.mozilla.org/firefox/addon/notebooklm-compactor/) for a permanent add-on.
 
 ## Install from source (development)
 
@@ -68,8 +65,7 @@ Buttons appear only on `notebooklm.google.com` — there is no toolbar popup.
 
 | Topic | Detail |
 |-------|--------|
-| **Temporary add-on expiry** | Loads via `about:debugging` are removed on Firefox restart. Use AMO install for a permanent add-on. |
-| **AMO availability** | First AMO review may take days to weeks after maintainers submit. Check [Releases](https://github.com/ayv4zyan/NotebookLM-Compactor/releases) or this doc for the live AMO URL. |
+| **Temporary add-on expiry** | Loads via `about:debugging` are removed on Firefox restart. Use the [AMO listing](https://addons.mozilla.org/firefox/addon/notebooklm-compactor/) for a permanent add-on. |
 | **Unofficial interface** | The extension uses your existing NotebookLM browser session. It does not use a published Google API. NotebookLM may change or block this at any time. |
 | **Terms of Service** | You must comply with [Google's Terms of Service](https://policies.google.com/terms). This project is not affiliated with Google. See [TERMS.md](../TERMS.md). |
 | **Compact deletes originals** | After a successful upload there is no undo. Enable **"Also download backup zip on success"** in the Compact modal, or download the NBLC / backup zip manually before proceeding. |

@@ -1,12 +1,18 @@
 # NotebookLM Compactor
 
-Chrome and Firefox extension that merges many [NotebookLM](https://notebooklm.google.com) sources into one **NBLC** bundle to save **source count quota**, with full **decompact** restore on any machine.
+**Firefox add-on and Chrome extension** that merges many [NotebookLM](https://notebooklm.google.com) sources into one **NBLC** bundle to save **source count quota**, with full **decompact** restore on any machine.
 
-**Current manifest version:** `1.0.0` · **Latest GitHub tag:** `v1.0.0`
+[![Get it on Firefox](https://img.shields.io/badge/Firefox-Get%20the%20add--on-FF7139?style=for-the-badge&logo=firefox&logoColor=white)](https://addons.mozilla.org/firefox/addon/notebooklm-compactor/)
+[![GitHub Release](https://img.shields.io/github/v/release/ayv4zyan/NotebookLM-Compactor?style=for-the-badge&logo=github&label=Release)](https://github.com/ayv4zyan/NotebookLM-Compactor/releases)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)](./LICENSE)
+
+**Install:** [Firefox Add-ons (AMO)](https://addons.mozilla.org/firefox/addon/notebooklm-compactor/) · [GitHub Releases](https://github.com/ayv4zyan/NotebookLM-Compactor/releases) (Chrome zip or manual Firefox load)
+
+**Current manifest version:** `1.0.2` · **Latest GitHub tag:** see [Releases](https://github.com/ayv4zyan/NotebookLM-Compactor/releases)
 
 ## What it does
 
-NotebookLM limits notebooks by **number of sources**, not total size. This extension:
+NotebookLM limits notebooks by **number of sources**, not total size. This **NotebookLM browser extension** (Firefox add-on and Chrome extension) helps you stay under that quota:
 
 - **Compact** — fetches selected sources, merges them into one self-describing NBLC document, uploads it as a single source, then deletes the originals you selected.
 - **Decompact** — reads an NBLC bundle (`📦 NBLC · …` title), restores each section as a separate source (YouTube/web links when possible, pasted text otherwise), then deletes the compacted source.
@@ -21,9 +27,15 @@ Decompact works **cross-machine**: all restore metadata lives inside the NBLC ma
 
 ## Install
 
-Releases ship two zips from [Releases](https://github.com/ayv4zyan/NotebookLM-Compactor/releases): `notebooklm-compactor-chrome.zip` and `notebooklm-compactor-firefox.zip`. Chrome and Firefox require different `background` manifest fields, so use the zip that matches your browser.
+### Firefox (recommended)
+
+Install from **[Mozilla Add-ons](https://addons.mozilla.org/firefox/addon/notebooklm-compactor/)** — signed, persists across browser restarts, no developer mode required.
+
+Alternative: download `notebooklm-compactor-firefox.zip` from [Releases](https://github.com/ayv4zyan/NotebookLM-Compactor/releases) and load temporarily via `about:debugging`. See **[docs/FIREFOX.md](./docs/FIREFOX.md)** for full steps, requirements (Firefox ≥ 128), and troubleshooting.
 
 ### Chrome / Chromium
+
+Releases ship `notebooklm-compactor-chrome.zip` from [Releases](https://github.com/ayv4zyan/NotebookLM-Compactor/releases). Chrome and Firefox require different `background` manifest fields, so use the zip that matches your browser.
 
 #### From a release (recommended)
 
@@ -43,17 +55,6 @@ node scripts/build-extension.mjs
 Then **Load unpacked** in `chrome://extensions` pointing at `dist/chrome` (or the repo root after the build step creates bundles).
 
 > **Note:** Chromium assigns a random extension ID for unpacked installs. That is normal and does not affect functionality.
-
-### Firefox
-
-See **[docs/FIREFOX.md](./docs/FIREFOX.md)** for full install steps, requirements (Firefox ≥ 128), AMO install, temporary load via `about:debugging`, and Firefox-specific troubleshooting.
-
-Quick start from a release zip:
-
-1. Download and unzip `notebooklm-compactor-firefox.zip`.
-2. Open `about:debugging` → **This Firefox** → **Load Temporary Add-on…** → select `manifest.json` inside the unzipped folder.
-
-> **Note:** Temporary loads expire on Firefox restart. After AMO approval, install from the Mozilla Add-ons listing for a permanent add-on (URL in [FIREFOX.md](./docs/FIREFOX.md)).
 
 ## Usage
 
@@ -79,7 +80,7 @@ Buttons appear only on `notebooklm.google.com` — there is no toolbar popup.
 | URL restore | YouTube and web sources restore as live links when URL metadata is present. Older bundles without `url:` metadata may lack stored URLs — re-compact to enable link restore. |
 | Citations | NotebookLM cites source **titles**, not sub-sections inside a merged file. NBLC uses `# [index] Title` headings to preserve provenance. |
 | Storage | `browser.storage.local` holds a temporary rollback buffer during operations only; cleared on success. |
-| Firefox temporary load | `about:debugging` installs are removed on browser restart until AMO listing is available. |
+| Firefox temporary load | `about:debugging` installs are removed on browser restart — use the [AMO listing](https://addons.mozilla.org/firefox/addon/notebooklm-compactor/) for a permanent add-on. |
 
 ## Privacy
 
@@ -132,7 +133,7 @@ git push origin main
 git push origin vX.Y.Z
 ```
 
-Submit `notebooklm-compactor-chrome.zip` to Chrome Web Store and `notebooklm-compactor-firefox.zip` to AMO. See [docs/FIREFOX_MIGRATION.md](./docs/FIREFOX_MIGRATION.md).
+Submit `notebooklm-compactor-chrome.zip` to Chrome Web Store (optional). Firefox is published on [AMO](https://addons.mozilla.org/firefox/addon/notebooklm-compactor/). See [docs/FIREFOX_MIGRATION.md](./docs/FIREFOX_MIGRATION.md).
 
 ### Implementation status
 

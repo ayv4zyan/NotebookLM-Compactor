@@ -1,11 +1,14 @@
 # Firefox Add-ons (AMO) listing
 
-Draft copy and submission notes for `v1.0.0+`. Requires a **public** GitHub repo so privacy policy and support URLs are reachable.
+Listing copy and submission notes. Requires a **public** GitHub repo so privacy policy and support URLs are reachable.
+
+**Live listing:** [addons.mozilla.org/firefox/addon/notebooklm-compactor](https://addons.mozilla.org/firefox/addon/notebooklm-compactor/) (approved 2026-06-21, version `1.0.2`)
 
 ## URLs
 
 | Field | Value |
 |-------|--------|
+| AMO listing | `https://addons.mozilla.org/firefox/addon/notebooklm-compactor/` |
 | Homepage | `https://github.com/ayv4zyan/NotebookLM-Compactor` |
 | Privacy policy | `https://github.com/ayv4zyan/NotebookLM-Compactor/blob/main/PRIVACY.md` |
 | Support / issues | `https://github.com/ayv4zyan/NotebookLM-Compactor/issues` |
@@ -77,14 +80,15 @@ Recommended size: 1280×800 or 640×400. No Google trademarks presented as if en
 
 ## Developer checklist
 
-- [ ] [Firefox Add-on Developer Hub](https://addons.mozilla.org/developers/) account created
-- [ ] Upload `notebooklm-compactor-firefox.zip` from GitHub Release `v1.0.0` (not the git repo folder)
-- [ ] Upload source code archive (see [Source code submission](#source-code-submission) below)
-- [ ] Privacy policy URL reachable
-- [ ] Screenshots attached (Firefox captures)
-- [ ] Test install from submitted package in a clean Firefox profile (`about:debugging` or AMO review channel)
-- [ ] Confirm `browser_specific_settings.gecko.id` is `notebooklm-compactor@ayv4zyan.github` (immutable after first upload)
-- [ ] Set `data_collection_permissions.required` to `["none"]` in manifest (already present)
+- [x] [Firefox Add-on Developer Hub](https://addons.mozilla.org/developers/) account created
+- [x] Upload `notebooklm-compactor-firefox.zip` from GitHub Release (not the git repo folder)
+- [x] Upload source code archive (see [Source code submission](#source-code-submission) below)
+- [x] Privacy policy URL reachable
+- [x] Screenshots attached (Firefox captures)
+- [x] Test install from submitted package in a clean Firefox profile
+- [x] Confirm `browser_specific_settings.gecko.id` is `notebooklm-compactor@ayv4zyan.github` (immutable after first upload)
+- [x] Set `data_collection_permissions.required` to `["none"]` in manifest
+- [x] Update [FIREFOX.md](./FIREFOX.md) and [README.md](../README.md) with live AMO URL
 
 ## Reviewer notes (private field if available)
 
